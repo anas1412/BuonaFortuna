@@ -4,12 +4,11 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, shadow, typography } from '../constants/theme';
-import { getCategoryById, Vendor } from '../data/mockData';
+import { Vendor } from '../data/mockData';
 import RatingBadge from './RatingBadge';
 
 export default function VendorCard({ vendor }: { vendor: Vendor }) {
   const router = useRouter();
-  const category = getCategoryById(vendor.categoryId);
 
   return (
     <Pressable
@@ -44,13 +43,13 @@ export default function VendorCard({ vendor }: { vendor: Vendor }) {
 
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
-            <Ionicons name="pricetag-outline" size={12} color={colors.inkFaint} />
-            <Text style={styles.metaText}>{category?.name}</Text>
+            <Ionicons name="time-outline" size={12} color={colors.inkFaint} />
+            <Text style={styles.metaText}>{vendor.deliveryTime}</Text>
           </View>
           <View style={styles.metaDivider} />
           <View style={styles.metaItem}>
-            <Ionicons name="time-outline" size={12} color={colors.inkFaint} />
-            <Text style={styles.metaText}>{vendor.deliveryTime}</Text>
+            <Ionicons name="location-outline" size={12} color={colors.inkFaint} />
+            <Text style={styles.metaText} numberOfLines={1}>{vendor.location}</Text>
           </View>
         </View>
       </View>

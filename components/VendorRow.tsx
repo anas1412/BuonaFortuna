@@ -4,12 +4,11 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, shadow, typography } from '../constants/theme';
-import { getCategoryById, Vendor } from '../data/mockData';
+import { Vendor } from '../data/mockData';
 import RatingBadge from './RatingBadge';
 
 export default function VendorRow({ vendor }: { vendor: Vendor }) {
   const router = useRouter();
-  const category = getCategoryById(vendor.categoryId);
 
   return (
     <Pressable
@@ -36,9 +35,6 @@ export default function VendorRow({ vendor }: { vendor: Vendor }) {
           <Text style={styles.metaText} numberOfLines={1}>
             {vendor.location}
           </Text>
-        </View>
-        <View style={styles.categoryChip}>
-          <Text style={styles.categoryText}>{category?.name}</Text>
         </View>
       </View>
     </Pressable>
@@ -70,18 +66,4 @@ const styles = StyleSheet.create({
   },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
   metaText: { fontFamily: typography.bodyMedium.fontFamily, fontSize: 11, color: colors.inkFaint },
-  categoryChip: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.redSofter,
-    borderRadius: radius.pill,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    marginTop: 6,
-  },
-  categoryText: {
-    fontFamily: typography.bodySemibold.fontFamily,
-    fontSize: 10.5,
-    color: colors.red,
-    letterSpacing: 0.2,
-  },
 });

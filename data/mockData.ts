@@ -14,7 +14,6 @@ export type Vendor = {
   name: string;
   tagline: string;
   description: string;
-  categoryId: string;
   coverImage: string;
   logoImage: string;
   rating: number;
@@ -37,6 +36,7 @@ export type Product = {
   size: string;
   brand: string;
   condition: Condition;
+  categoryId: string;
   tag?: string; // ex. "Coup de cœur", "Nouveau dépôt"
 };
 
@@ -82,6 +82,7 @@ export const products: Product[] = [
     size: '38',
     brand: 'Sandro',
     condition: 'Comme neuf',
+    categoryId: 'cat-7',
     tag: 'Coup de cœur',
   },
   {
@@ -96,18 +97,20 @@ export const products: Product[] = [
     size: 'M',
     brand: 'Zara',
     condition: 'Très bon état',
+    categoryId: 'cat-1',
   },
   {
     id: 'prod-3',
     vendorId: 'vend-1',
     name: 'Chemisier en soie',
-    description: 'Chemisier 100% soie, col boutonné, quelques légères marques d’usage.',
+    description: 'Chemisier 100% soie, col boutonné, quelques légères marques d\'usage.',
     price: 22,
     image: 'https://images.unsplash.com/photo-1551048632-24e444b48a3e?w=800',
     rating: 4.4,
     size: '36',
     brand: 'Maje',
     condition: 'Bon état',
+    categoryId: 'cat-1',
     tag: 'Nouveau dépôt',
   },
   {
@@ -122,25 +125,27 @@ export const products: Product[] = [
     size: '31/32',
     brand: "Levi's",
     condition: 'Très bon état',
+    categoryId: 'cat-2',
     tag: 'Coup de cœur',
   },
   {
     id: 'prod-5',
     vendorId: 'vend-2',
     name: 'Chemise à carreaux flanelle',
-    description: 'Chemise épaisse en flanelle, coupe regular, idéale pour l’automne.',
+    description: 'Chemise épaisse en flanelle, coupe regular, idéale pour l\'automne.',
     price: 15,
     image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800',
     rating: 4.5,
     size: 'L',
     brand: 'Uniqlo',
     condition: 'Bon état',
+    categoryId: 'cat-2',
   },
   {
     id: 'prod-6',
     vendorId: 'vend-3',
     name: 'Baskets New Balance 574',
-    description: 'Semelle encore en bon état, très peu de traces d’usure.',
+    description: 'Semelle encore en bon état, très peu de traces d\'usure.',
     price: 38,
     compareAtPrice: 100,
     image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800',
@@ -148,6 +153,7 @@ export const products: Product[] = [
     size: '42',
     brand: 'New Balance',
     condition: 'Très bon état',
+    categoryId: 'cat-4',
   },
   {
     id: 'prod-7',
@@ -160,6 +166,7 @@ export const products: Product[] = [
     size: '39',
     brand: 'Clarks',
     condition: 'Bon état',
+    categoryId: 'cat-4',
     tag: 'Nouveau dépôt',
   },
   {
@@ -173,6 +180,7 @@ export const products: Product[] = [
     size: 'Taille unique',
     brand: 'Longchamp',
     condition: 'Bon état',
+    categoryId: 'cat-5',
     tag: 'Coup de cœur',
   },
   {
@@ -186,6 +194,7 @@ export const products: Product[] = [
     size: '36',
     brand: 'Vintage',
     condition: 'Très bon état',
+    categoryId: 'cat-6',
     tag: 'Coup de cœur',
   },
   {
@@ -200,6 +209,7 @@ export const products: Product[] = [
     size: 'M',
     brand: 'Schott',
     condition: 'Bon état',
+    categoryId: 'cat-6',
   },
   {
     id: 'prod-11',
@@ -212,6 +222,7 @@ export const products: Product[] = [
     size: '3 mois',
     brand: 'Petit Bateau',
     condition: 'Très bon état',
+    categoryId: 'cat-3',
     tag: 'Nouveau dépôt',
   },
   {
@@ -225,6 +236,7 @@ export const products: Product[] = [
     size: 'L',
     brand: 'Adidas',
     condition: 'Bon état',
+    categoryId: 'cat-8',
     tag: 'Coup de cœur',
   },
 ];
@@ -237,7 +249,6 @@ export const vendors: Vendor[] = [
     tagline: 'Pièces féminines chinées avec soin',
     description:
       "Une sélection pointue de vêtements féminins de seconde main, triés à la main pour leur qualité et leur intemporalité. Chaque pièce est nettoyée et vérifiée avant sa mise en ligne.",
-    categoryId: 'cat-1',
     coverImage: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=1200',
     logoImage: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=300',
     rating: 4.9,
@@ -254,7 +265,6 @@ export const vendors: Vendor[] = [
     tagline: 'Denim, chemises et essentiels masculins',
     description:
       'Une friperie de quartier spécialisée dans le vestiaire masculin : denim solide, chemises intemporelles et pièces qui traversent les années sans prendre une ride.',
-    categoryId: 'cat-2',
     coverImage: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1200',
     logoImage: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=300',
     rating: 4.7,
@@ -268,10 +278,9 @@ export const vendors: Vendor[] = [
     id: 'vend-3',
     ownerUserId: 'user-4',
     name: 'Seconde Semelle',
-    tagline: 'Chaussures et bottines d’occasion',
+    tagline: 'Chaussures et bottines d\'occasion',
     description:
-      'Spécialiste de la chaussure de seconde main : chaque paire est nettoyée, vérifiée et ressemelée si besoin avant d’être proposée à la vente.',
-    categoryId: 'cat-4',
+      'Spécialiste de la chaussure de seconde main : chaque paire est nettoyée, vérifiée et ressemelée si besoin avant d\'être proposée à la vente.',
     coverImage: 'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?w=1200',
     logoImage: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=300',
     rating: 4.8,
@@ -287,7 +296,6 @@ export const vendors: Vendor[] = [
     tagline: 'Sacs et accessoires vintage',
     description:
       'Des sacs et accessoires de seconde main sélectionnés pour leur qualité de fabrication — du cuir qui a vécu, mais qui a encore beaucoup à offrir.',
-    categoryId: 'cat-5',
     coverImage: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=1200',
     logoImage: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300',
     rating: 4.8,
@@ -303,7 +311,6 @@ export const vendors: Vendor[] = [
     tagline: 'Pièces vintage authentiques, toutes décennies',
     description:
       'Une boutique spécialisée dans le vêtement vintage authentique, des années 50 aux années 90, chinée dans toute la France.',
-    categoryId: 'cat-6',
     coverImage: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=1200',
     logoImage: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=300',
     rating: 4.9,
@@ -317,10 +324,9 @@ export const vendors: Vendor[] = [
     id: 'vend-6',
     ownerUserId: 'user-7',
     name: 'Petits Trésors',
-    tagline: 'Vêtements d’occasion pour bébés et enfants',
+    tagline: 'Vêtements d\'occasion pour bébés et enfants',
     description:
-      'Vêtements d’enfants portés une saison à peine, lavés et contrôlés avec la même exigence que pour un dépôt-vente pour adultes.',
-    categoryId: 'cat-3',
+      'Vêtements d\'enfants portés une saison à peine, lavés et contrôlés avec la même exigence que pour un dépôt-vente pour adultes.',
     coverImage: 'https://images.unsplash.com/photo-1522771930-78848d9293e8?w=1200',
     logoImage: 'https://images.unsplash.com/photo-1522771930-78848d9293e8?w=300',
     rating: 4.9,
@@ -335,8 +341,7 @@ export const vendors: Vendor[] = [
     name: 'Terrain de Jeu Sport',
     tagline: 'Survêtements et sneakers de seconde main',
     description:
-      'Toute la culture streetwear et sportwear d’occasion : survêtements, sneakers et pièces de marque à prix doux.',
-    categoryId: 'cat-8',
+      'Toute la culture streetwear et sportwear d\'occasion : survêtements, sneakers et pièces de marque à prix doux.',
     coverImage: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1200',
     logoImage: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=300',
     rating: 4.7,
@@ -373,9 +378,6 @@ export const getProductById = (id: string) => products.find((p) => p.id === id);
 export const getVendorById = (id: string) => vendors.find((v) => v.id === id);
 export const getProductsByVendor = (vendorId: string) =>
   products.filter((p) => p.vendorId === vendorId);
-export const getCategoryById = (id: string) => categories.find((c) => c.id === id);
-export const getVendorsByCategory = (categoryId: string) =>
-  vendors.filter((v) => v.categoryId === categoryId);
 export const getFeaturedVendors = () => vendors.filter((v) => v.featured);
 
 export const reviews: Review[] = [

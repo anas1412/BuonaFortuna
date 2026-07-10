@@ -15,7 +15,6 @@ import ProductCard from '../../components/ProductCard';
 import RatingBadge from '../../components/RatingBadge';
 import { colors, radius, shadow, typography } from '../../constants/theme';
 import {
-  getCategoryById,
   getProductsByVendor,
   getReviewsByVendor,
   getVendorById,
@@ -44,7 +43,6 @@ export default function VendorShopScreen() {
     );
   }
 
-  const category = getCategoryById(vendor.categoryId);
   const shopProducts = getProductsByVendor(vendor.id);
   const shopReviews = getReviewsByVendor(vendor.id);
 
@@ -86,9 +84,6 @@ export default function VendorShopScreen() {
           <View style={styles.metaRow}>
             <RatingBadge rating={vendor.rating} />
             <Text style={styles.reviewCount}>({vendor.reviewCount} avis)</Text>
-            <View style={styles.metaDivider} />
-            <Ionicons name="pricetag-outline" size={13} color={colors.inkFaint} />
-            <Text style={styles.metaText}>{category?.name}</Text>
           </View>
 
           <View style={styles.quickInfoRow}>
@@ -159,10 +154,6 @@ export default function VendorShopScreen() {
             <View style={styles.aboutRow}>
               <Ionicons name="time-outline" size={16} color={colors.red} />
               <Text style={styles.aboutRowText}>Délai habituel : {vendor.deliveryTime}</Text>
-            </View>
-            <View style={styles.aboutRow}>
-              <Ionicons name="pricetag-outline" size={16} color={colors.red} />
-              <Text style={styles.aboutRowText}>{category?.name}</Text>
             </View>
           </View>
         )}

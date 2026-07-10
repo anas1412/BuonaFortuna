@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -17,9 +17,7 @@ import VendorCard from '../../components/VendorCard';
 import { colors, radius, shadow, typography } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
 import {
-  categories,
   getFeaturedVendors,
-  getVendorsByCategory,
   products,
   vendors,
 } from '../../data/mockData';
@@ -27,25 +25,10 @@ import {
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  const featured = useMemo(
-    () => (activeCategory ? getVendorsByCategory(activeCategory).filter((v) => v.featured) : getFeaturedVendors()),
-    [activeCategory],
-  );
-
-  const coupsDeCoeur = useMemo(
-    () =>
-      activeCategory
-        ? products.filter((p) => p.tag === 'Coup de cœur' && vendors.find((v) => v.id === p.vendorId)?.categoryId === activeCategory)
-        : products.filter((p) => p.tag === 'Coup de cœur'),
-    [activeCategory],
-  );
-
-  const nearbyVendors = useMemo(
-    () => (activeCategory ? getVendorsByCategory(activeCategory) : vendors).slice(0, 3),
-    [activeCategory],
-  );
+  const featured = useMemo(() => getFeaturedVendors(), []);
+  const coupsDeCoeur = useMemo(() => products.filter((p) => p.tag === 'Coup de cœur'), []);
+  const nearbyVendors = useMemo(() => vendors.slice(0, 3), []);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -101,32 +84,6 @@ export default function HomeScreen() {
             style={styles.heroImage}
             contentFit="cover"
           />
-        </View>
-
-        {/* Catégories */}
-        <View style={styles.section}>
-          <SectionHeader title="Catégories" />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
-            {categories.map((c) => {
-              const active = activeCategory === c.id;
-              return (
-                <Pressable
-                  key={c.id}
-                  style={[styles.categoryChip, active && styles.categoryChipActive]}
-                  onPress={() => setActiveCategory(active ? null : c.id)}
-                >
-                  <Ionicons
-                    name={c.icon as any}
-                    size={16}
-                    color={active ? colors.white : colors.red}
-                  />
-                  <Text style={[styles.categoryChipText, active && styles.categoryChipTextActive]}>
-                    {c.name}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
         </View>
 
         {/* Boutiques à la une */}
@@ -291,22 +248,4 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   section: { marginTop: 28, paddingHorizontal: 20 },
-  categoryChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.paper,
-    borderRadius: radius.pill,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: colors.line,
-  },
-  categoryChipActive: { backgroundColor: colors.red, borderColor: colors.red },
-  categoryChipText: {
-    fontFamily: typography.bodySemibold.fontFamily,
-    fontSize: 12.5,
-    color: colors.ink,
-  },
-  categoryChipTextActive: { color: colors.white },
 });

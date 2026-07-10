@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import VendorRow from '../../components/VendorRow';
 import { colors, radius, shadow, typography } from '../../constants/theme';
-import { categories, vendors } from '../../data/mockData';
+import { vendors } from '../../data/mockData';
 
 const SORTS = [
   { key: 'recommended', label: 'Recommandé' },
@@ -25,12 +25,10 @@ type SortKey = (typeof SORTS)[number]['key'];
 
 export default function VendorsScreen() {
   const [query, setQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [sort, setSort] = useState<SortKey>('recommended');
 
   const filtered = useMemo(() => {
     let list = [...vendors];
-    if (activeCategory) list = list.filter((v) => v.categoryId === activeCategory);
     if (query.trim()) {
       const q = query.toLowerCase();
       list = list.filter(
@@ -39,7 +37,7 @@ export default function VendorsScreen() {
     }
     if (sort === 'rating') list = [...list].sort((a, b) => b.rating - a.rating);
     return list;
-  }, [activeCategory, query, sort]);
+  }, [query, sort]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -95,36 +93,6 @@ export default function VendorsScreen() {
                   );
                 })}
               </View>
-
-              {/* Category chips — horizontal scroll */}
-              <FlatList
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                data={[{ id: null, name: 'Toutes', icon: 'grid-outline' }, ...categories]}
-                keyExtractor={(c) => c.id ?? 'all'}
-                contentContainerStyle={styles.categoryRow}
-                renderItem={({ item }) => {
-                  const active = item.id === null ? !activeCategory : activeCategory === item.id;
-                  return (
-                    <Pressable
-                      style={[styles.catChip, active && styles.catChipActive]}
-                      onPress={() => {
-                        if (item.id === null) setActiveCategory(null);
-                        else setActiveCategory(active ? null : item.id);
-                      }}
-                    >
-                      <Ionicons
-                        name={item.icon as any}
-                        size={14}
-                        color={active ? colors.white : colors.red}
-                      />
-                      <Text style={[styles.catChipText, active && styles.catChipTextActive]}>
-                        {item.name}
-                      </Text>
-                    </Pressable>
-                  );
-                }}
-              />
             </>
           }
           ListEmptyComponent={
@@ -196,26 +164,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.red,
     borderRadius: 1.5,
   },
-
-  // Category chips — horizontal scroll
-  categoryRow: {
-    paddingVertical: 14,
-    gap: 8,
-  },
-  catChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.paper,
-    borderRadius: radius.pill,
-    paddingHorizontal: 14,
-    height: 34,
-    borderWidth: 1,
-    borderColor: colors.line,
-  },
-  catChipActive: { backgroundColor: colors.red, borderColor: colors.red },
-  catChipText: { fontFamily: typography.bodySemibold.fontFamily, fontSize: 12.5, color: colors.ink },
-  catChipTextActive: { color: colors.white },
 
   // Empty
   empty: { alignItems: 'center', paddingTop: 60, gap: 6 },
