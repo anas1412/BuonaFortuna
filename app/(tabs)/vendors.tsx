@@ -150,14 +150,14 @@ const styles = StyleSheet.create({
 
   // Search
   searchBar: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     backgroundColor: colors.paper,
     borderRadius: radius.md,
     paddingHorizontal: 14,
-    height: 44,
+    height: 48,
+    marginTop: 16,
     ...shadow.soft,
   },
   searchInput: {
