@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import Button from '../../components/Button';
@@ -19,6 +20,8 @@ import { useAuth } from '../../context/AuthContext';
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading } = useAuth();
+  const { width } = useWindowDimensions();
+  const isSmall = width < 380;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
@@ -43,13 +46,15 @@ export default function LoginScreen() {
     else router.replace('/(tabs)');
   };
 
+  const horizontalPadding = isSmall ? 20 : 28;
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.cream }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingHorizontal: horizontalPadding }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -58,9 +63,11 @@ export default function LoginScreen() {
         </Pressable>
 
         <View style={styles.hero}>
-          <Logo size={52} />
-          <Text style={styles.title}>Bon retour</Text>
-          <Text style={styles.subtitle}>Connectez-vous à BuonaFortuna pour retrouver{'\n'}vos friperies favorites.</Text>
+          <Logo size={isSmall ? 42 : 52} />
+          <Text style={[styles.title, isSmall && styles.titleSmall]}>Bon retour</Text>
+          <Text style={[styles.subtitle, isSmall && styles.subtitleSmall]}>
+            Connectez-vous à BuonaFortuna pour retrouver{'\n'}vos friperies favorites.
+          </Text>
         </View>
 
         <View style={styles.form}>
@@ -111,7 +118,7 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flexGrow: 1, paddingHorizontal: 26, paddingTop: 8, paddingBottom: 32 },
+  scroll: { flexGrow: 1, paddingTop: 8, paddingBottom: 32 },
   backBtn: {
     width: 40,
     height: 40,
@@ -128,6 +135,7 @@ const styles = StyleSheet.create({
     color: colors.ink,
     marginTop: 18,
   },
+  titleSmall: { fontSize: 26 },
   subtitle: {
     fontFamily: typography.body.fontFamily,
     fontSize: 14,
@@ -136,6 +144,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     lineHeight: 20,
   },
+  subtitleSmall: { fontSize: 13, lineHeight: 18 },
   form: { width: '100%' },
   formError: {
     fontFamily: typography.bodyMedium.fontFamily,

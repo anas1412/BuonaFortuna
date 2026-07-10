@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import Button from '../../components/Button';
@@ -19,6 +20,8 @@ import { useAuth } from '../../context/AuthContext';
 export default function SignupScreen() {
   const router = useRouter();
   const { signup, isLoading } = useAuth();
+  const { width } = useWindowDimensions();
+  const isSmall = width < 380;
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,13 +49,15 @@ export default function SignupScreen() {
     else router.replace('/(tabs)');
   };
 
+  const horizontalPadding = isSmall ? 20 : 28;
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.cream }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingHorizontal: horizontalPadding }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -61,9 +66,9 @@ export default function SignupScreen() {
         </Pressable>
 
         <View style={styles.hero}>
-          <Logo size={52} />
-          <Text style={styles.title}>Rejoignez BuonaFortuna</Text>
-          <Text style={styles.subtitle}>
+          <Logo size={isSmall ? 42 : 52} />
+          <Text style={[styles.title, isSmall && styles.titleSmall]}>Rejoignez BuonaFortuna</Text>
+          <Text style={[styles.subtitle, isSmall && styles.subtitleSmall]}>
             Créez un compte pour chiner chez nos vendeuses —{'\n'}ou ouvrez votre propre boutique en quelques minutes.
           </Text>
         </View>
@@ -117,7 +122,7 @@ export default function SignupScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flexGrow: 1, paddingHorizontal: 26, paddingTop: 8, paddingBottom: 32 },
+  scroll: { flexGrow: 1, paddingTop: 8, paddingBottom: 32 },
   backBtn: {
     width: 40,
     height: 40,
@@ -135,6 +140,7 @@ const styles = StyleSheet.create({
     marginTop: 18,
     textAlign: 'center',
   },
+  titleSmall: { fontSize: 24 },
   subtitle: {
     fontFamily: typography.body.fontFamily,
     fontSize: 14,
@@ -143,6 +149,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     lineHeight: 20,
   },
+  subtitleSmall: { fontSize: 13, lineHeight: 18 },
   form: { width: '100%' },
   formError: {
     fontFamily: typography.bodyMedium.fontFamily,
