@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
 import {
+  FlatList,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -69,18 +70,22 @@ export default function SearchScreen() {
         {!hasQuery && (
           <View style={styles.suggestionsWrap}>
             <Text style={styles.sectionTitle}>Catégories</Text>
-            <View style={styles.chipGrid}>
-              {categories.map((c) => (
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={categories}
+              keyExtractor={(c) => c.id}
+              contentContainerStyle={styles.chipRow}
+              renderItem={({ item }) => (
                 <Pressable
-                  key={c.id}
                   style={styles.chip}
-                  onPress={() => setQuery(c.name)}
+                  onPress={() => setQuery(item.name)}
                 >
-                  <Ionicons name={c.icon as any} size={15} color={colors.red} />
-                  <Text style={styles.chipText}>{c.name}</Text>
+                  <Ionicons name={item.icon as any} size={14} color={colors.red} />
+                  <Text style={styles.chipText}>{item.name}</Text>
                 </Pressable>
-              ))}
-            </View>
+              )}
+            />
           </View>
         )}
 
@@ -142,12 +147,8 @@ const styles = StyleSheet.create({
   },
 
   // Suggestions
-  suggestionsWrap: { paddingHorizontal: 20, marginTop: 24 },
-  chipGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
+  suggestionsWrap: { marginTop: 24 },
+  chipRow: { paddingHorizontal: 20, paddingVertical: 4, gap: 8 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.paper,
     borderRadius: radius.pill,
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    height: 34,
     borderWidth: 1,
     borderColor: colors.line,
   },
