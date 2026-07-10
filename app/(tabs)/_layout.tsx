@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,7 +23,6 @@ const BAR_CONTENT_HEIGHT = 56;
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const router = useRouter();
 
   return (
     <Tabs
@@ -90,14 +89,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabIcon name={focused ? 'person-circle' : 'person-circle-outline'} color={color as string} />
           ),
-        }}
-        listeners={{
-          tabPress: (e) => {
-            if (!user) {
-              e.preventDefault();
-              router.push('/(auth)/login');
-            }
-          },
+          href: user ? undefined : '/(auth)/login',
         }}
       />
     </Tabs>
