@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -16,8 +16,18 @@ import { colors, radius, shadow, typography } from '../../constants/theme';
 import { useSearch } from '../../context/SearchContext';
 import { categories, products, vendors } from '../../data/mockData';
 
+const SORTS = [
+  { key: 'recommended', label: 'Recommandé' },
+  { key: 'rating', label: 'Mieux notés' },
+  { key: 'distance', label: 'Plus proche' },
+] as const;
+
+type SortKey = (typeof SORTS)[number]['key'];
+
 export default function SearchScreen() {
   const { query, setQuery, clearSearch } = useSearch();
+  const [sort, setSort] = useState<SortKey>('recommended');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const filteredVendors = useMemo(() => {
     if (!query.trim()) return [];
@@ -68,24 +78,52 @@ export default function SearchScreen() {
         contentContainerStyle={{ paddingBottom: 28 }}
       >
         {!hasQuery && (
-          <View style={styles.suggestionsWrap}>
+          <>
+            {/* Sort tabs */}
+            <View style={styles.sortRow}>
+              {SORTS.map((s) => {
+                const active = sort === s.key;
+                return (
+                  <Pressable
+                    key={s.key}
+                    style={styles.sortTab}
+                    onPress={() => setSort(s.key)}
+                  >
+                    <Text style={[styles.sortTabText, active && styles.sortTabTextActive]}>
+                      {s.label}
+                    </Text>
+                    {active && <View style={styles.sortUnderline} />}
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* Category chips */}
             <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
-              data={categories}
-              keyExtractor={(c) => c.id}
+              data={[{ id: null, name: 'Toutes', icon: 'grid-outline' }, ...categories]}
+              keyExtractor={(c) => c.id ?? 'all'}
               contentContainerStyle={styles.chipRow}
-              renderItem={({ item }) => (
-                <Pressable
-                  style={styles.chip}
-                  onPress={() => setQuery(item.name)}
-                >
-                  <Ionicons name={item.icon as any} size={14} color={colors.red} />
-                  <Text style={styles.chipText}>{item.name}</Text>
-                </Pressable>
-              )}
+              renderItem={({ item }) => {
+                const active = item.id === null ? !activeCategory : activeCategory === item.id;
+                return (
+                  <Pressable
+                    style={[styles.chip, active && styles.chipActive]}
+                    onPress={() => {
+                      if (item.id === null) setActiveCategory(null);
+                      else setActiveCategory(active ? null : item.id);
+                    }}
+                  >
+                    <Ionicons name={item.icon as any} size={14} color={active ? colors.white : colors.red} />
+                    <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                      {item.name}
+                    </Text>
+                  </Pressable>
+                );
+              }}
             />
-          </View>
+          </>
         )}
 
         {hasQuery && filteredVendors.length === 0 && filteredProducts.length === 0 && (
@@ -147,7 +185,42 @@ const styles = StyleSheet.create({
 
   // Suggestions
   suggestionsWrap: { marginTop: 16 },
-  chipRow: { paddingHorizontal: 4, paddingVertical: 10, gap: 8 },
+
+  // Sort tabs
+  sortRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+    marginTop: 16,
+    marginHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  sortTab: {
+    alignItems: 'center',
+    paddingBottom: 10,
+  },
+  sortTabText: {
+    fontFamily: typography.bodyMedium.fontFamily,
+    fontSize: 13,
+    color: colors.inkFaint,
+  },
+  sortTabTextActive: {
+    fontFamily: typography.bodyBold.fontFamily,
+    color: colors.ink,
+  },
+  sortUnderline: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2.5,
+    backgroundColor: colors.red,
+    borderRadius: 1.5,
+  },
+
+  // Category chips
+  chipRow: { paddingHorizontal: 4, paddingVertical: 14, gap: 8 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -159,11 +232,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.line,
   },
+  chipActive: { backgroundColor: colors.red, borderColor: colors.red },
   chipText: {
     fontFamily: typography.bodySemibold.fontFamily,
     fontSize: 12.5,
     color: colors.ink,
   },
+  chipTextActive: { color: colors.white },
 
   // Results
   section: { marginTop: 24, paddingHorizontal: 20 },
