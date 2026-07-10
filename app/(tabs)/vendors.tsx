@@ -30,7 +30,8 @@ export default function VendorsScreen() {
   const [openOnly, setOpenOnly] = useState(true);
 
   const filtered = useMemo(() => {
-    let list = vendors.filter((v) => v.isOpen);
+    let list = [...vendors];
+    if (openOnly) list = list.filter((v) => v.isOpen);
     if (activeCategory) list = list.filter((v) => v.categoryId === activeCategory);
     if (query.trim()) {
       const q = query.toLowerCase();
