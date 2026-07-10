@@ -89,7 +89,6 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabIcon name={focused ? 'person-circle' : 'person-circle-outline'} color={color as string} />
           ),
-          href: user ? undefined : '/(auth)/login',
         }}
       />
     </Tabs>

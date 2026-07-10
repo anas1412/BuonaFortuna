@@ -1,11 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '../../components/Button';
-import Logo from '../../components/Logo';
 import { colors, radius, shadow, typography } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
 
@@ -13,7 +11,11 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, myVendor: vendor } = useAuth();
 
-  if (!user) return <LoggedOutView />;
+  useEffect(() => {
+    if (!user) router.replace('/(auth)/login');
+  }, [user]);
+
+  if (!user) return null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -52,7 +54,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* 1:1 vendor shop section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ma boutique</Text>
           {vendor ? (
@@ -82,12 +83,6 @@ export default function ProfileScreen() {
                 Chaque compte peut gérer une boutique. Commencez à vendre à la communauté
                 BuonaFortuna en quelques minutes.
               </Text>
-              <Button
-                label="Créer ma boutique"
-                onPress={() => Alert.alert('Bientôt disponible', "La création de boutique n'est pas encore connectée dans cette démo.")}
-                size="md"
-                style={{ marginTop: 14 }}
-              />
             </View>
           )}
         </View>
@@ -113,31 +108,6 @@ function MenuItem({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphM
     </Pressable>
   );
 }
-
-function LoggedOutView() {
-  const router = useRouter();
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.loggedOutWrap}>
-        <Logo size={64} />
-        <Text style={styles.loggedOutTitle}>Votre compte,{'\n'}votre boutique</Text>
-        <Text style={styles.loggedOutSubtitle}>
-          Connectez-vous pour suivre vos commandes, enregistrer vos favoris et gérer votre
-          propre boutique.
-        </Text>
-        <Button label="Se connecter" onPress={() => router.push('/(auth)/login')} style={{ marginTop: 28, width: '100%' }} />
-        <Button
-          label="Créer un compte"
-          onPress={() => router.push('/(auth)/signup')}
-          variant="outline"
-          style={{ marginTop: 12, width: '100%' }}
-        />
-      </View>
-    </SafeAreaView>
-  );
-}
-
-
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.cream },
@@ -261,22 +231,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   menuLabel: { flex: 1, fontFamily: typography.bodySemibold.fontFamily, fontSize: 14, color: colors.ink },
-
-  loggedOutWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  loggedOutTitle: {
-    fontFamily: typography.display.fontFamily,
-    fontSize: 28,
-    color: colors.ink,
-    textAlign: 'center',
-    marginTop: 22,
-    lineHeight: 34,
-  },
-  loggedOutSubtitle: {
-    fontFamily: typography.body.fontFamily,
-    fontSize: 14,
-    color: colors.inkSoft,
-    textAlign: 'center',
-    marginTop: 10,
-    lineHeight: 20,
-  },
 });
