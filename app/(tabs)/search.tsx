@@ -69,7 +69,6 @@ export default function SearchScreen() {
       >
         {!hasQuery && (
           <View style={styles.suggestionsWrap}>
-            <Text style={styles.sectionTitle}>Catégories</Text>
             <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -147,8 +146,8 @@ const styles = StyleSheet.create({
   },
 
   // Suggestions
-  suggestionsWrap: { marginTop: 24 },
-  chipRow: { paddingHorizontal: 20, paddingVertical: 4, gap: 8 },
+  suggestionsWrap: { marginTop: 16 },
+  chipRow: { paddingHorizontal: 4, paddingVertical: 10, gap: 8 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
