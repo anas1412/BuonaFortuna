@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.paper,
     borderRadius: radius.lg,
     overflow: 'hidden',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   image: { width: 104, minHeight: 112, backgroundColor: colors.line },
   body: { flex: 1, padding: 12, gap: 4 },
