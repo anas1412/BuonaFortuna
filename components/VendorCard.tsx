@@ -25,11 +25,6 @@ export default function VendorCard({ vendor }: { vendor: Vendor }) {
         <View style={styles.ratingPos}>
           <RatingBadge rating={vendor.rating} compact />
         </View>
-        {!vendor.isOpen && (
-          <View style={styles.closedOverlay}>
-            <Text style={styles.closedText}>Fermé pour le moment</Text>
-          </View>
-        )}
       </View>
 
       <View style={styles.body}>
@@ -73,21 +68,6 @@ const styles = StyleSheet.create({
   imageWrap: { width: '100%', height: 140, backgroundColor: colors.line },
   image: { width: '100%', height: '100%' },
   ratingPos: { position: 'absolute', top: 10, left: 10 },
-  closedOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.overlay,
-    paddingVertical: 6,
-    alignItems: 'center',
-  },
-  closedText: {
-    color: colors.white,
-    fontFamily: typography.bodySemibold.fontFamily,
-    fontSize: 12,
-    letterSpacing: 0.3,
-  },
   body: { padding: 14 },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   name: {

@@ -72,11 +72,6 @@ export default function VendorShopScreen() {
             </View>
           </SafeAreaView>
 
-          {!vendor.isOpen && (
-            <View style={styles.closedBanner}>
-              <Text style={styles.closedBannerText}>Fermé actuellement</Text>
-            </View>
-          )}
         </View>
 
         <View style={styles.infoCard}>
@@ -106,10 +101,6 @@ export default function VendorShopScreen() {
               <Text style={styles.quickInfoText} numberOfLines={1}>
                 {vendor.location}
               </Text>
-            </View>
-            <View style={styles.quickInfoItem}>
-              <View style={[styles.statusDot, { backgroundColor: vendor.isOpen ? colors.green : colors.inkFaint }]} />
-              <Text style={styles.quickInfoText}>{vendor.isOpen ? 'Ouvert' : 'Fermé'}</Text>
             </View>
           </View>
 
@@ -255,16 +246,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closedBanner: {
-    position: 'absolute',
-    bottom: 14,
-    left: 16,
-    backgroundColor: colors.ink,
-    borderRadius: radius.pill,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  closedBannerText: { color: colors.white, fontFamily: typography.bodyBold.fontFamily, fontSize: 11.5 },
   infoCard: {
     backgroundColor: colors.paper,
     marginHorizontal: 16,
@@ -298,7 +279,7 @@ const styles = StyleSheet.create({
   },
   quickInfoItem: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
   quickInfoText: { fontFamily: typography.bodySemibold.fontFamily, fontSize: 11.5, color: colors.ink },
-  statusDot: { width: 7, height: 7, borderRadius: 4 },
+
   actionRow: { flexDirection: 'row', gap: 10, marginTop: 16 },
   followBtn: {
     flex: 1,

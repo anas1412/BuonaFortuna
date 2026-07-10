@@ -32,9 +32,6 @@ export default function VendorRow({ vendor }: { vendor: Vendor }) {
           {vendor.tagline}
         </Text>
         <View style={styles.metaRow}>
-          <View style={[styles.statusDot, { backgroundColor: vendor.isOpen ? colors.green : colors.inkFaint }]} />
-          <Text style={styles.metaText}>{vendor.isOpen ? 'Ouvert' : 'Fermé'}</Text>
-          <View style={styles.metaDivider} />
           <Ionicons name="location-outline" size={12} color={colors.inkFaint} />
           <Text style={styles.metaText} numberOfLines={1}>
             {vendor.location}
@@ -72,9 +69,7 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
-  statusDot: { width: 6, height: 6, borderRadius: 3 },
   metaText: { fontFamily: typography.bodyMedium.fontFamily, fontSize: 11, color: colors.inkFaint },
-  metaDivider: { width: 3, height: 3, borderRadius: 2, backgroundColor: colors.lineStrong, marginHorizontal: 2 },
   categoryChip: {
     alignSelf: 'flex-start',
     backgroundColor: colors.redSofter,

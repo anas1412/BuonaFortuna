@@ -27,11 +27,9 @@ export default function VendorsScreen() {
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [sort, setSort] = useState<SortKey>('recommended');
-  const [openOnly, setOpenOnly] = useState(true);
 
   const filtered = useMemo(() => {
     let list = [...vendors];
-    if (openOnly) list = list.filter((v) => v.isOpen);
     if (activeCategory) list = list.filter((v) => v.categoryId === activeCategory);
     if (query.trim()) {
       const q = query.toLowerCase();
@@ -41,7 +39,7 @@ export default function VendorsScreen() {
     }
     if (sort === 'rating') list = [...list].sort((a, b) => b.rating - a.rating);
     return list;
-  }, [activeCategory, openOnly, query, sort]);
+  }, [activeCategory, query, sort]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -60,35 +58,23 @@ export default function VendorsScreen() {
                 <Text style={styles.title}>Boutiques</Text>
               </View>
 
-              {/* Search + Ouvert toggle */}
-              <View style={styles.searchRow}>
-                <View style={styles.searchBar}>
-                  <Ionicons name="search" size={18} color={colors.inkFaint} />
-                  <TextInput
-                    value={query}
-                    onChangeText={setQuery}
-                    placeholder="Rechercher une boutique..."
-                    placeholderTextColor={colors.inkFaint}
-                    style={styles.searchInput}
-                    returnKeyType="search"
-                    onSubmitEditing={() => Keyboard.dismiss()}
-                  />
-                  {!!query && (
-                    <Pressable onPress={() => setQuery('')} hitSlop={8}>
-                      <Ionicons name="close-circle" size={18} color={colors.inkFaint} />
-                    </Pressable>
-                  )}
-                </View>
-                <Pressable
-                  style={[styles.openToggle, openOnly && styles.openToggleActive]}
-                  onPress={() => setOpenOnly((o) => !o)}
-                >
-                  <Ionicons
-                    name={openOnly ? 'checkmark-circle' : 'ellipse-outline'}
-                    size={16}
-                    color={openOnly ? colors.white : colors.inkSoft}
-                  />
-                </Pressable>
+              {/* Search */}
+              <View style={styles.searchBar}>
+                <Ionicons name="search" size={18} color={colors.inkFaint} />
+                <TextInput
+                  value={query}
+                  onChangeText={setQuery}
+                  placeholder="Rechercher une boutique..."
+                  placeholderTextColor={colors.inkFaint}
+                  style={styles.searchInput}
+                  returnKeyType="search"
+                  onSubmitEditing={() => Keyboard.dismiss()}
+                />
+                {!!query && (
+                  <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                    <Ionicons name="close-circle" size={18} color={colors.inkFaint} />
+                  </Pressable>
+                )}
               </View>
 
               {/* Sort tabs */}
@@ -162,13 +148,7 @@ const styles = StyleSheet.create({
   header: { paddingTop: 8, paddingBottom: 4 },
   title: { fontFamily: typography.display.fontFamily, fontSize: 26, color: colors.ink },
 
-  // Search + open toggle
-  searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 10,
-  },
+  // Search
   searchBar: {
     flex: 1,
     flexDirection: 'row',
@@ -185,20 +165,6 @@ const styles = StyleSheet.create({
     fontFamily: typography.body.fontFamily,
     fontSize: 14,
     color: colors.ink,
-  },
-  openToggle: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.paper,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  openToggleActive: {
-    backgroundColor: colors.green,
-    borderColor: colors.green,
   },
 
   // Sort tabs (text-based, not pills)

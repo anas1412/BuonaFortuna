@@ -20,7 +20,6 @@ export type Vendor = {
   rating: number;
   reviewCount: number;
   location: string;
-  isOpen: boolean;
   deliveryTime: string;
   featured?: boolean;
   productIds: string[];
@@ -244,7 +243,6 @@ export const vendors: Vendor[] = [
     rating: 4.9,
     reviewCount: 412,
     location: 'Marché du Marais',
-    isOpen: true,
     deliveryTime: '2–3 jours',
     featured: true,
     productIds: ['prod-1', 'prod-2', 'prod-3'],
@@ -262,7 +260,6 @@ export const vendors: Vendor[] = [
     rating: 4.7,
     reviewCount: 198,
     location: 'Quartier des Tanneurs',
-    isOpen: true,
     deliveryTime: '3–4 jours',
     featured: true,
     productIds: ['prod-4', 'prod-5'],
@@ -280,7 +277,6 @@ export const vendors: Vendor[] = [
     rating: 4.8,
     reviewCount: 145,
     location: 'Passage des Artisans',
-    isOpen: true,
     deliveryTime: '3–5 jours',
     productIds: ['prod-6', 'prod-7'],
   },
@@ -297,7 +293,6 @@ export const vendors: Vendor[] = [
     rating: 4.8,
     reviewCount: 231,
     location: 'Rue des Antiquaires',
-    isOpen: false,
     deliveryTime: '2–3 jours',
     productIds: ['prod-8'],
   },
@@ -314,7 +309,6 @@ export const vendors: Vendor[] = [
     rating: 4.9,
     reviewCount: 356,
     location: 'Village Vintage, 3e étage',
-    isOpen: true,
     deliveryTime: '4–6 jours',
     featured: true,
     productIds: ['prod-9', 'prod-10'],
@@ -332,7 +326,6 @@ export const vendors: Vendor[] = [
     rating: 4.9,
     reviewCount: 167,
     location: 'Marché aux Puces Nord',
-    isOpen: true,
     deliveryTime: '1–2 jours',
     productIds: ['prod-11'],
   },
@@ -349,7 +342,6 @@ export const vendors: Vendor[] = [
     rating: 4.7,
     reviewCount: 203,
     location: 'Halle du Sport',
-    isOpen: true,
     deliveryTime: '2–4 jours',
     productIds: ['prod-12'],
   },

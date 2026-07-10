@@ -186,16 +186,7 @@ export default function ProductScreen() {
                 {vendor.reviewCount} avis · {vendor.rating.toFixed(1)} ★
               </Text>
               <View style={styles.vendorStatusRow}>
-                <View
-                  style={[
-                    styles.statusDot,
-                    { backgroundColor: vendor.isOpen ? colors.green : colors.inkFaint },
-                  ]}
-                />
-                <Text style={styles.vendorStatusText}>
-                  {vendor.isOpen ? 'Ouvert' : 'Fermé'}
-                </Text>
-                <Text style={styles.vendorDelivery}>· {vendor.deliveryTime}</Text>
+                <Text style={styles.vendorDelivery}>{vendor.deliveryTime}</Text>
               </View>
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.inkFaint} />
@@ -421,12 +412,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     marginTop: 4,
-  },
-  statusDot: { width: 6, height: 6, borderRadius: 3 },
-  vendorStatusText: {
-    fontFamily: typography.bodyMedium.fontFamily,
-    fontSize: 11.5,
-    color: colors.inkSoft,
   },
   vendorDelivery: {
     fontFamily: typography.body.fontFamily,
