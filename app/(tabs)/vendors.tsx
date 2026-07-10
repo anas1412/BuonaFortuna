@@ -96,37 +96,35 @@ export default function VendorsScreen() {
                 })}
               </View>
 
-              {/* Category chips */}
-              <View style={styles.categoryRow}>
-                <Pressable
-                  style={[styles.catChip, !activeCategory && styles.catChipActive]}
-                  onPress={() => setActiveCategory(null)}
-                >
-                  <Ionicons
-                    name="grid-outline"
-                    size={13}
-                    color={!activeCategory ? colors.white : colors.red}
-                  />
-                  <Text style={[styles.catChipText, !activeCategory && styles.catChipTextActive]}>
-                    Toutes
-                  </Text>
-                </Pressable>
-                {categories.map((item) => {
-                  const active = activeCategory === item.id;
+              {/* Category chips — horizontal scroll */}
+              <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                data={[{ id: null, name: 'Toutes', icon: 'grid-outline' }, ...categories]}
+                keyExtractor={(c) => c.id ?? 'all'}
+                contentContainerStyle={styles.categoryRow}
+                renderItem={({ item }) => {
+                  const active = item.id === null ? !activeCategory : activeCategory === item.id;
                   return (
                     <Pressable
-                      key={item.id}
                       style={[styles.catChip, active && styles.catChipActive]}
-                      onPress={() => setActiveCategory(active ? null : item.id)}
+                      onPress={() => {
+                        if (item.id === null) setActiveCategory(null);
+                        else setActiveCategory(active ? null : item.id);
+                      }}
                     >
-                      <Ionicons name={item.icon as any} size={13} color={active ? colors.white : colors.red} />
+                      <Ionicons
+                        name={item.icon as any}
+                        size={14}
+                        color={active ? colors.white : colors.red}
+                      />
                       <Text style={[styles.catChipText, active && styles.catChipTextActive]}>
                         {item.name}
                       </Text>
                     </Pressable>
                   );
-                })}
-              </View>
+                }}
+              />
             </>
           }
           ListEmptyComponent={
@@ -167,7 +165,7 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
 
-  // Sort tabs (text-based, not pills)
+  // Sort tabs
   sortRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -199,26 +197,25 @@ const styles = StyleSheet.create({
     borderRadius: 1.5,
   },
 
-  // Category chips
+  // Category chips — horizontal scroll
   categoryRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 14,
+    paddingHorizontal: 4,
+    paddingVertical: 14,
     gap: 8,
   },
   catChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
     backgroundColor: colors.paper,
     borderRadius: radius.pill,
-    paddingHorizontal: 12,
-    height: 32,
+    paddingHorizontal: 14,
+    height: 34,
     borderWidth: 1,
     borderColor: colors.line,
   },
   catChipActive: { backgroundColor: colors.red, borderColor: colors.red },
-  catChipText: { fontFamily: typography.bodySemibold.fontFamily, fontSize: 12, color: colors.ink },
+  catChipText: { fontFamily: typography.bodySemibold.fontFamily, fontSize: 12.5, color: colors.ink },
   catChipTextActive: { color: colors.white },
 
   // Empty
