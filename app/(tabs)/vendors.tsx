@@ -199,7 +199,6 @@ const styles = StyleSheet.create({
 
   // Category chips — horizontal scroll
   categoryRow: {
-    paddingHorizontal: 4,
     paddingVertical: 14,
     gap: 8,
   },

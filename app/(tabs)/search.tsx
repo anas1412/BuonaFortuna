@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
 
   // Category chips
-  chipRow: { paddingHorizontal: 4, paddingVertical: 14, gap: 8 },
+  chipRow: { marginHorizontal: 20, paddingVertical: 14, gap: 8 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
