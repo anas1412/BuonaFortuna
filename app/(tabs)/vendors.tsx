@@ -3,7 +3,6 @@ import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   Keyboard,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
