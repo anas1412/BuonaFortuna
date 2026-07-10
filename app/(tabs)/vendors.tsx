@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   Keyboard,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -16,9 +17,9 @@ import { colors, radius, shadow, typography } from '../../constants/theme';
 import { categories, vendors } from '../../data/mockData';
 
 const SORTS = [
-  { key: 'recommended', label: 'Recommandé', icon: 'flame-outline' as const },
-  { key: 'rating', label: 'Mieux notés', icon: 'star-outline' as const },
-  { key: 'distance', label: 'Plus proche', icon: 'navigate-outline' as const },
+  { key: 'recommended', label: 'Recommandé' },
+  { key: 'rating', label: 'Mieux notés' },
+  { key: 'distance', label: 'Plus proche' },
 ] as const;
 
 type SortKey = (typeof SORTS)[number]['key'];
@@ -59,58 +60,54 @@ export default function VendorsScreen() {
                 <Text style={styles.title}>Boutiques</Text>
               </View>
 
-              {/* Search */}
-              <View style={styles.searchBar}>
-                <Ionicons name="search" size={18} color={colors.inkFaint} />
-                <TextInput
-                  value={query}
-                  onChangeText={setQuery}
-                  placeholder="Rechercher une boutique..."
-                  placeholderTextColor={colors.inkFaint}
-                  style={styles.searchInput}
-                  returnKeyType="search"
-                  onSubmitEditing={() => Keyboard.dismiss()}
-                />
-                {!!query && (
-                  <Pressable onPress={() => setQuery('')} hitSlop={8}>
-                    <Ionicons name="close-circle" size={18} color={colors.inkFaint} />
-                  </Pressable>
-                )}
+              {/* Search + Ouvert toggle */}
+              <View style={styles.searchRow}>
+                <View style={styles.searchBar}>
+                  <Ionicons name="search" size={18} color={colors.inkFaint} />
+                  <TextInput
+                    value={query}
+                    onChangeText={setQuery}
+                    placeholder="Rechercher une boutique..."
+                    placeholderTextColor={colors.inkFaint}
+                    style={styles.searchInput}
+                    returnKeyType="search"
+                    onSubmitEditing={() => Keyboard.dismiss()}
+                  />
+                  {!!query && (
+                    <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                      <Ionicons name="close-circle" size={18} color={colors.inkFaint} />
+                    </Pressable>
+                  )}
+                </View>
+                <Pressable
+                  style={[styles.openToggle, openOnly && styles.openToggleActive]}
+                  onPress={() => setOpenOnly((o) => !o)}
+                >
+                  <Ionicons
+                    name={openOnly ? 'checkmark-circle' : 'ellipse-outline'}
+                    size={16}
+                    color={openOnly ? colors.white : colors.inkSoft}
+                  />
+                </Pressable>
               </View>
 
-              {/* Sort chips */}
-              <View style={styles.filterRow}>
+              {/* Sort tabs */}
+              <View style={styles.sortRow}>
                 {SORTS.map((s) => {
                   const active = sort === s.key;
                   return (
                     <Pressable
                       key={s.key}
-                      style={[styles.chip, active && styles.chipActive]}
+                      style={styles.sortTab}
                       onPress={() => setSort(s.key)}
                     >
-                      <Ionicons name={s.icon} size={13} color={active ? colors.white : colors.red} />
-                      <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                      <Text style={[styles.sortTabText, active && styles.sortTabTextActive]}>
                         {s.label}
                       </Text>
+                      {active && <View style={styles.sortUnderline} />}
                     </Pressable>
                   );
                 })}
-
-                <View style={styles.chipDivider} />
-
-                <Pressable
-                  style={[styles.chip, openOnly && styles.chipActive]}
-                  onPress={() => setOpenOnly((o) => !o)}
-                >
-                  <Ionicons
-                    name={openOnly ? 'checkmark-circle' : 'ellipse-outline'}
-                    size={13}
-                    color={openOnly ? colors.white : colors.ink}
-                  />
-                  <Text style={[styles.chipText, openOnly && styles.chipTextActive]}>
-                    Ouvert
-                  </Text>
-                </Pressable>
               </View>
 
               {/* Category chips */}
@@ -121,7 +118,7 @@ export default function VendorsScreen() {
                 >
                   <Ionicons
                     name="grid-outline"
-                    size={14}
+                    size={13}
                     color={!activeCategory ? colors.white : colors.red}
                   />
                   <Text style={[styles.catChipText, !activeCategory && styles.catChipTextActive]}>
@@ -136,7 +133,7 @@ export default function VendorsScreen() {
                       style={[styles.catChip, active && styles.catChipActive]}
                       onPress={() => setActiveCategory(active ? null : item.id)}
                     >
-                      <Ionicons name={item.icon as any} size={14} color={active ? colors.white : colors.red} />
+                      <Ionicons name={item.icon as any} size={13} color={active ? colors.white : colors.red} />
                       <Text style={[styles.catChipText, active && styles.catChipTextActive]}>
                         {item.name}
                       </Text>
@@ -164,15 +161,23 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 20, paddingBottom: 24 },
   header: { paddingTop: 8, paddingBottom: 4 },
   title: { fontFamily: typography.display.fontFamily, fontSize: 26, color: colors.ink },
+
+  // Search + open toggle
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
   searchBar: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     backgroundColor: colors.paper,
     borderRadius: radius.md,
     paddingHorizontal: 14,
-    height: 48,
-    marginTop: 10,
+    height: 44,
     ...shadow.soft,
   },
   searchInput: {
@@ -181,44 +186,58 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.ink,
   },
-  filterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-    gap: 8,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    height: 32,
-    borderRadius: radius.pill,
+  openToggle: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.paper,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  chipActive: {
-    backgroundColor: colors.ink,
-    borderColor: colors.ink,
+  openToggleActive: {
+    backgroundColor: colors.green,
+    borderColor: colors.green,
   },
-  chipText: {
-    fontFamily: typography.bodySemibold.fontFamily,
-    fontSize: 12,
+
+  // Sort tabs (text-based, not pills)
+  sortRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+    marginTop: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  sortTab: {
+    alignItems: 'center',
+    paddingBottom: 10,
+  },
+  sortTabText: {
+    fontFamily: typography.bodyMedium.fontFamily,
+    fontSize: 13,
+    color: colors.inkFaint,
+  },
+  sortTabTextActive: {
+    fontFamily: typography.bodyBold.fontFamily,
     color: colors.ink,
   },
-  chipTextActive: {
-    color: colors.white,
+  sortUnderline: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2.5,
+    backgroundColor: colors.red,
+    borderRadius: 1.5,
   },
-  chipDivider: {
-    width: 1,
-    height: 14,
-    backgroundColor: colors.lineStrong,
-  },
+
+  // Category chips
   categoryRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 12,
+    marginTop: 14,
     gap: 8,
   },
   catChip: {
@@ -227,7 +246,7 @@ const styles = StyleSheet.create({
     gap: 5,
     backgroundColor: colors.paper,
     borderRadius: radius.pill,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     height: 32,
     borderWidth: 1,
     borderColor: colors.line,
@@ -235,6 +254,8 @@ const styles = StyleSheet.create({
   catChipActive: { backgroundColor: colors.red, borderColor: colors.red },
   catChipText: { fontFamily: typography.bodySemibold.fontFamily, fontSize: 12, color: colors.ink },
   catChipTextActive: { color: colors.white },
+
+  // Empty
   empty: { alignItems: 'center', paddingTop: 60, gap: 6 },
   emptyTitle: { fontFamily: typography.bodyBold.fontFamily, fontSize: 15, color: colors.ink, marginTop: 8 },
   emptyText: { fontFamily: typography.body.fontFamily, fontSize: 13, color: colors.inkFaint },
