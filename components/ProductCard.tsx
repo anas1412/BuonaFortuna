@@ -34,7 +34,7 @@ export default function ProductCard({ product }: { product: Product }) {
       style={({ pressed }) => [styles.card, shadow.soft, pressed && { opacity: 0.9 }]}
     >
       <View style={styles.imageWrap}>
-        <Image source={{ uri: product.image }} style={styles.image} contentFit="cover" />
+        <Image source={{ uri: product.images[0] }} style={styles.image} contentFit="cover" />
         {!!product.tag && (
           <View style={styles.tag}>
             <Text style={styles.tagText}>{product.tag}</Text>

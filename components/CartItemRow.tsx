@@ -10,7 +10,7 @@ export default function CartItemRow({ item }: { item: CartItem }) {
 
   return (
     <View style={styles.row}>
-      <Image source={{ uri: item.product.image }} style={styles.image} contentFit="cover" />
+      <Image source={{ uri: item.product.images[0] }} style={styles.image} contentFit="cover" />
       <View style={styles.body}>
         <View style={styles.topRow}>
           <View style={{ flex: 1 }}>

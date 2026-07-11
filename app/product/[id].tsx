@@ -1,13 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Alert,
+  FlatList,
+  NativeSyntheticEvent,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,6 +32,9 @@ export default function ProductScreen() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { addItem } = useCart();
   const { user } = useAuth();
+  const scrollRef = useRef<FlatList<string>>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const { width: screenWidth } = useWindowDimensions();
 
   const goBack = () => {
     if (router.canGoBack()) router.back();
@@ -87,13 +93,36 @@ export default function ProductScreen() {
     }
   };
 
+  const onScroll = useCallback(
+    (e: NativeSyntheticEvent<{ contentOffset: { x: number } }>) => {
+      const index = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+      setActiveIndex(index);
+    },
+    [screenWidth],
+  );
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        {/* Hero image */}
+        {/* Hero image carousel */}
         <View style={styles.heroWrap}>
-          <Image source={{ uri: product.image }} style={styles.heroImage} contentFit="cover" />
+          <FlatList
+            ref={scrollRef}
+            data={product.images}
+            keyExtractor={(_, i) => String(i)}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={onScroll}
+            renderItem={({ item }) => (
+              <Image
+                source={{ uri: item }}
+                style={[styles.heroImage, { width: screenWidth }]}
+                contentFit="cover"
+              />
+            )}
+          />
           <View style={styles.heroShade} />
           <SafeAreaView edges={['top']} style={styles.heroNav}>
             <Pressable style={styles.navBtn} onPress={goBack}>
@@ -119,6 +148,15 @@ export default function ProductScreen() {
             </View>
           </SafeAreaView>
 
+          {/* Image counter */}
+          {product.images.length > 1 && (
+            <View style={styles.imageCounter}>
+              <Text style={styles.imageCounterText}>
+                {activeIndex + 1}/{product.images.length}
+              </Text>
+            </View>
+          )}
+
           {/* Condition badge on image */}
           <View style={styles.conditionBadge}>
             <Text style={styles.conditionText}>{product.condition}</Text>
@@ -128,6 +166,18 @@ export default function ProductScreen() {
           {!!product.tag && (
             <View style={styles.tagBadge}>
               <Text style={styles.tagText}>{product.tag}</Text>
+            </View>
+          )}
+
+          {/* Dot indicators */}
+          {product.images.length > 1 && (
+            <View style={styles.dotsRow}>
+              {product.images.map((_, i) => (
+                <View
+                  key={i}
+                  style={[styles.dot, i === activeIndex && styles.dotActive]}
+                />
+              ))}
             </View>
           )}
         </View>
@@ -249,7 +299,7 @@ const styles = StyleSheet.create({
 
   // Hero
   heroWrap: { height: 340, backgroundColor: colors.line },
-  heroImage: { width: '100%', height: '100%' },
+  heroImage: { height: '100%' },
   heroShade: {
     position: 'absolute',
     left: 0,
@@ -304,6 +354,39 @@ const styles = StyleSheet.create({
     fontFamily: typography.bodyBold.fontFamily,
     fontSize: 11.5,
     letterSpacing: 0.3,
+  },
+  imageCounter: {
+    position: 'absolute',
+    top: 54,
+    right: 16,
+    backgroundColor: 'rgba(26,21,18,0.55)',
+    borderRadius: radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  imageCounterText: {
+    color: colors.white,
+    fontFamily: typography.bodyBold.fontFamily,
+    fontSize: 11,
+  },
+  dotsRow: {
+    position: 'absolute',
+    bottom: 14,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+  },
+  dotActive: {
+    backgroundColor: colors.white,
+    width: 18,
   },
 
   // Info card

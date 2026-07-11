@@ -31,7 +31,7 @@ export type Product = {
   description: string;
   price: number;
   compareAtPrice?: number; // prix neuf d'origine
-  image: string;
+  images: string[]; // min 1, max 8
   rating: number;
   size: string;
   brand: string;
@@ -77,7 +77,11 @@ export const products: Product[] = [
     description: "Trench en coton bien coupé, doublure satinée, porté deux ou trois fois seulement.",
     price: 68,
     compareAtPrice: 240,
-    image: 'https://images.unsplash.com/photo-1520975954732-35dd22299614?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1520975954732-35dd22299614?w=800',
+      'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800',
+      'https://images.unsplash.com/photo-1544957992-20514f595d6f?w=800',
+    ],
     rating: 4.9,
     size: '38',
     brand: 'Sandro',
@@ -92,7 +96,10 @@ export const products: Product[] = [
     description: 'Robe midi imprimée fleurs, tissu fluide, parfaite pour la mi-saison.',
     price: 18,
     compareAtPrice: 45,
-    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800',
+      'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=800',
+    ],
     rating: 4.6,
     size: 'M',
     brand: 'Zara',
@@ -105,7 +112,10 @@ export const products: Product[] = [
     name: 'Chemisier en soie',
     description: 'Chemisier 100% soie, col boutonné, quelques légères marques d\'usage.',
     price: 22,
-    image: 'https://images.unsplash.com/photo-1551048632-24e444b48a3e?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1551048632-24e444b48a3e?w=800',
+      'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=800',
+    ],
     rating: 4.4,
     size: '36',
     brand: 'Maje',
@@ -120,7 +130,11 @@ export const products: Product[] = [
     description: 'Coupe droite iconique, délavage authentique, taille haute.',
     price: 32,
     compareAtPrice: 90,
-    image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800',
+      'https://images.unsplash.com/photo-1542272604-787c3835535d?w=800',
+      'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=800',
+    ],
     rating: 4.8,
     size: '31/32',
     brand: "Levi's",
@@ -134,7 +148,10 @@ export const products: Product[] = [
     name: 'Chemise à carreaux flanelle',
     description: 'Chemise épaisse en flanelle, coupe regular, idéale pour l\'automne.',
     price: 15,
-    image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800',
+      'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=800',
+    ],
     rating: 4.5,
     size: 'L',
     brand: 'Uniqlo',
@@ -148,7 +165,11 @@ export const products: Product[] = [
     description: 'Semelle encore en bon état, très peu de traces d\'usure.',
     price: 38,
     compareAtPrice: 100,
-    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800',
+      'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800',
+      'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=800',
+    ],
     rating: 4.7,
     size: '42',
     brand: 'New Balance',
@@ -161,7 +182,10 @@ export const products: Product[] = [
     name: 'Bottines en cuir',
     description: 'Bottines en cuir véritable, ressemelées récemment chez un cordonnier.',
     price: 44,
-    image: 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=800',
+      'https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=800',
+    ],
     rating: 4.6,
     size: '39',
     brand: 'Clarks',
@@ -175,7 +199,10 @@ export const products: Product[] = [
     name: 'Sac à main cuir vintage',
     description: 'Sac structuré en cuir pleine fleur, patine du temps, fermoir doré.',
     price: 55,
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800',
+      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800',
+    ],
     rating: 4.8,
     size: 'Taille unique',
     brand: 'Longchamp',
@@ -189,7 +216,10 @@ export const products: Product[] = [
     name: 'Robe cocktail années 60',
     description: 'Pièce vintage authentique, coupe cintrée, tissu jacquard.',
     price: 65,
-    image: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=800',
+      'https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=800',
+    ],
     rating: 4.9,
     size: '36',
     brand: 'Vintage',
@@ -204,7 +234,11 @@ export const products: Product[] = [
     description: 'Blouson en cuir vieilli, fermetures éclair fonctionnelles, très bon tombé.',
     price: 78,
     compareAtPrice: 220,
-    image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800',
+      'https://images.unsplash.com/photo-1521223890158-f9f7c3d5d504?w=800',
+      'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800',
+    ],
     rating: 4.7,
     size: 'M',
     brand: 'Schott',
@@ -217,7 +251,10 @@ export const products: Product[] = [
     name: 'Body de naissance en coton bio',
     description: 'Lot de 3 bodys, coton doux, lavés et repassés avant dépôt.',
     price: 9,
-    image: 'https://images.unsplash.com/photo-1522771930-78848d9293e8?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1522771930-78848d9293e8?w=800',
+      'https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=800',
+    ],
     rating: 4.9,
     size: '3 mois',
     brand: 'Petit Bateau',
@@ -231,7 +268,10 @@ export const products: Product[] = [
     name: 'Survêtement Adidas Originals',
     description: 'Ensemble veste et pantalon en molleton, bandes iconiques.',
     price: 28,
-    image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800',
+    images: [
+      'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800',
+      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800',
+    ],
     rating: 4.6,
     size: 'L',
     brand: 'Adidas',
