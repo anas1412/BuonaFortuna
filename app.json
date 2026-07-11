@@ -1,18 +1,12 @@
 {
   "expo": {
     "name": "BuonaFortuna",
-    "slug": "buonafortuna",
+    "slug": "anas1412",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "buonafortuna",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
-    },
     "ios": {
       "supportsTablet": true,
       "userInterfaceStyle": "light",
@@ -33,6 +27,13 @@
     "plugins": [
       "expo-router",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "efdd77df-5174-4edb-9b40-782dbf381248"
+      }
+    },
+    "owner": "anas1412s-team"
   }
 }
