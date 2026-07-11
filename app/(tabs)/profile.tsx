@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, radius, shadow, typography } from '../../constants/theme';
@@ -11,11 +11,30 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, myVendor: vendor } = useAuth();
 
-  useEffect(() => {
-    if (!user) router.replace('/(auth)/login');
-  }, [user, router]);
-
-  if (!user) return null;
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Profil</Text>
+        </View>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 }}>
+          <Ionicons name="person-circle-outline" size={64} color={colors.inkFaint} />
+          <Text style={{ fontFamily: typography.displaySemibold.fontFamily, fontSize: 18, color: colors.ink, marginTop: 14 }}>
+            Connectez-vous
+          </Text>
+          <Text style={{ fontFamily: typography.body.fontFamily, fontSize: 13.5, color: colors.inkSoft, textAlign: 'center', marginTop: 6 }}>
+            Accédez à votre profil, vos favoris et votre boutique.
+          </Text>
+          <Pressable
+            onPress={() => router.push('/(auth)/login')}
+            style={{ backgroundColor: colors.red, borderRadius: radius.pill, paddingHorizontal: 24, paddingVertical: 12, marginTop: 20 }}
+          >
+            <Text style={{ fontFamily: typography.bodyBold.fontFamily, fontSize: 14, color: colors.white }}>Se connecter</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

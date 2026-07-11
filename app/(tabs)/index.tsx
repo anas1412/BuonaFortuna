@@ -94,7 +94,7 @@ export default function HomeScreen() {
             actionLabel="Tout voir"
             onAction={() => router.push('/(tabs)/vendors')}
           />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingRight: 4 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingRight: 4, paddingBottom: 8 }}>
             {featured.map((v) => (
               <View key={v.id} style={{ width: 250 }}>
                 <VendorCard vendor={v} />
@@ -106,7 +106,7 @@ export default function HomeScreen() {
         {/* Coups de cœur */}
         <View style={styles.section}>
           <SectionHeader title="Nos coups de cœur" subtitle="Des pièces qui partent vite" />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: 4 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: 4, paddingBottom: 8 }}>
             {coupsDeCoeur.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
@@ -247,5 +247,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     marginLeft: 10,
   },
-  section: { marginTop: 28, paddingHorizontal: 20 },
+  section: { marginTop: 28, marginBottom: 4, paddingHorizontal: 20 },
 });
