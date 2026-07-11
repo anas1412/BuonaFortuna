@@ -4,7 +4,6 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   Alert,
-  FlatList,
   NativeSyntheticEvent,
   Pressable,
   ScrollView,
@@ -32,7 +31,7 @@ export default function ProductScreen() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { addItem } = useCart();
   const { user } = useAuth();
-  const scrollRef = useRef<FlatList<string>>(null);
+  const scrollRef = useRef<ScrollView>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const { width: screenWidth } = useWindowDimensions();
 
@@ -107,22 +106,22 @@ export default function ProductScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         {/* Hero image carousel */}
         <View style={styles.heroWrap}>
-          <FlatList
+          <ScrollView
             ref={scrollRef}
-            data={product.images}
-            keyExtractor={(_, i) => String(i)}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             onMomentumScrollEnd={onScroll}
-            renderItem={({ item }) => (
+          >
+            {product.images.map((uri, i) => (
               <Image
-                source={{ uri: item }}
+                key={String(i)}
+                source={{ uri }}
                 style={[styles.heroImage, { width: screenWidth }]}
                 contentFit="cover"
               />
-            )}
-          />
+            ))}
+          </ScrollView>
           <View style={styles.heroShade} />
           <SafeAreaView edges={['top']} style={styles.heroNav}>
             <Pressable style={styles.navBtn} onPress={goBack}>
