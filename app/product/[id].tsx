@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   },
   conditionBadge: {
     position: 'absolute',
-    bottom: 14,
+    bottom: 44,
     left: 16,
     backgroundColor: 'rgba(255,252,249,0.92)',
     borderRadius: radius.pill,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   },
   tagBadge: {
     position: 'absolute',
-    bottom: 14,
+    bottom: 44,
     right: 16,
     backgroundColor: colors.ink,
     borderRadius: radius.pill,
