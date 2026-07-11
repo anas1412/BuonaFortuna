@@ -58,27 +58,6 @@ L'app s'ouvre sur `http://localhost:8081`.
 ```bash
 npm install -g eas-cli
 eas login
-eas build:configure
-```
-
-Créer un fichier `eas.json` à la racine :
-
-```json
-{
-  "build": {
-    "preview": {
-      "android": {
-        "buildType": "apk"
-      }
-    },
-    "production": {}
-  }
-}
-```
-
-Puis lancer le build :
-
-```bash
 eas build -p android --profile preview
 ```
 
