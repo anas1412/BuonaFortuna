@@ -357,12 +357,12 @@ const styles = StyleSheet.create({
   },
   imageCounter: {
     position: 'absolute',
-    top: 54,
-    right: 16,
+    bottom: 44,
+    alignSelf: 'center',
     backgroundColor: 'rgba(26,21,18,0.55)',
     borderRadius: radius.pill,
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 6,
   },
   imageCounterText: {
     color: colors.white,
