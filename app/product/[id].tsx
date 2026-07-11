@@ -357,8 +357,8 @@ const styles = StyleSheet.create({
   },
   imageCounter: {
     position: 'absolute',
-    bottom: 30,
-    alignSelf: 'center',
+    top: 54,
+    right: 16,
     backgroundColor: 'rgba(26,21,18,0.55)',
     borderRadius: radius.pill,
     paddingHorizontal: 10,
