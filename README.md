@@ -56,10 +56,11 @@ L'app s'ouvre sur `http://localhost:8081`.
 ### Option 1 : EAS Build (recommandé)
 
 ```bash
-npm install -g eas-cli
-eas login
-eas build -p android --profile preview
+npx eas-cli@latest init --id <PROJECT_ID>
+npx eas-cli@latest build --profile preview --platform android
 ```
+
+Récupérer le `<PROJECT_ID>` sur [expo.dev](https://expo.dev) après la création du compte.
 
 Le lien de téléchargement de l'APK sera affiché dans le terminal.
 
@@ -74,7 +75,7 @@ Nécessite Android Studio et un SDK Android configuré.
 ## Générer un IPA iOS
 
 ```bash
-eas build -p ios --profile preview
+npx eas-cli@latest build --profile preview --platform ios
 ```
 
 Nécessite un compte Apple Developer et EAS Build.
