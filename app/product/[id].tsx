@@ -111,7 +111,8 @@ export default function ProductScreen() {
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={onScroll}
+            scrollEventThrottle={16}
+            onScroll={onScroll}
           >
             {product.images.map((uri, i) => (
               <Image
