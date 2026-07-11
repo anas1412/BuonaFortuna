@@ -55,12 +55,16 @@ L'app s'ouvre sur `http://localhost:8081`.
 
 ### Option 1 : EAS Build (recommandé)
 
+Créer un token d'accès sur [expo.dev](https://expo.dev) → Account Settings → Access Tokens.
+
+Puis :
+
 ```bash
-npx eas-cli@latest init --id <PROJECT_ID>
+export EXPO_TOKEN=<TON_TOKEN>
 npx eas-cli@latest build --profile preview --platform android
 ```
 
-Récupérer le `<PROJECT_ID>` sur [expo.dev](https://expo.dev) après la création du compte.
+Lien de téléchargement de l'APK affiché dans le terminal.
 
 Le lien de téléchargement de l'APK sera affiché dans le terminal.
 
@@ -75,6 +79,7 @@ Nécessite Android Studio et un SDK Android configuré.
 ## Générer un IPA iOS
 
 ```bash
+export EXPO_TOKEN=<TON_TOKEN>
 npx eas-cli@latest build --profile preview --platform ios
 ```
 
