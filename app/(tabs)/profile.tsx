@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, radius, shadow, typography } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
@@ -13,7 +13,7 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (!user) router.replace('/(auth)/login');
-  }, [user]);
+  }, [user, router]);
 
   if (!user) return null;
 

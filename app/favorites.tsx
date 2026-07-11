@@ -4,7 +4,7 @@ import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ProductCard from '../components/ProductCard';
-import { colors, radius, shadow, typography } from '../constants/theme';
+import { colors, shadow, typography } from '../constants/theme';
 import { useFavorites } from '../context/FavoritesContext';
 import { products } from '../data/mockData';
 
@@ -35,7 +35,7 @@ export default function FavoritesScreen() {
           </View>
           <Text style={styles.emptyTitle}>Aucun favori pour le moment</Text>
           <Text style={styles.emptyText}>
-            Appuyez sur le cœur d'un article pour l'enregistrer ici.
+            Appuyez sur le cœur d&apos;un article pour l&apos;enregistrer ici.
           </Text>
         </View>
       </SafeAreaView>

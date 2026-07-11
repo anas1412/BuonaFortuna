@@ -104,7 +104,7 @@ export default function SignupScreen() {
           {!!errors.form && <Text style={styles.formError}>{errors.form}</Text>}
 
           <Text style={styles.terms}>
-            En continuant, vous acceptez les Conditions d'utilisation et la Politique de confidentialité de BuonaFortuna.
+            En continuant, vous acceptez les Conditions d&apos;utilisation et la Politique de confidentialité de BuonaFortuna.
           </Text>
 
           <Button label="Créer mon compte" onPress={onSubmit} loading={isLoading} style={{ marginTop: 6 }} />

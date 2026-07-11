@@ -37,6 +37,14 @@ export default function ProductScreen() {
   const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
   const { width: screenWidth } = useWindowDimensions();
 
+  const onScroll = useCallback(
+    (e: NativeSyntheticEvent<{ contentOffset: { x: number } }>) => {
+      const index = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+      setActiveIndex(index);
+    },
+    [screenWidth],
+  );
+
   const goBack = () => {
     if (router.canGoBack()) router.back();
     else router.replace('/(tabs)');
@@ -93,14 +101,6 @@ export default function ProductScreen() {
       Alert.alert('Ajouté au panier', `${product.name} a été ajouté à votre panier.`);
     }
   };
-
-  const onScroll = useCallback(
-    (e: NativeSyntheticEvent<{ contentOffset: { x: number } }>) => {
-      const index = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
-      setActiveIndex(index);
-    },
-    [screenWidth],
-  );
 
   return (
     <View style={styles.container}>

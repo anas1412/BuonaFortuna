@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -21,12 +20,14 @@ export default function ImageGallery({ images, visible, initialIndex, onClose }:
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const hasScrolled = useRef(false);
+  const prevVisible = useRef(visible);
 
   useEffect(() => {
-    if (visible) {
+    if (visible && !prevVisible.current) {
       hasScrolled.current = false;
       setActiveIndex(initialIndex);
     }
+    prevVisible.current = visible;
   }, [visible, initialIndex]);
 
   return (

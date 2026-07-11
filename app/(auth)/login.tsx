@@ -101,7 +101,7 @@ export default function LoginScreen() {
           <View style={styles.hintBox}>
             <Ionicons name="information-circle-outline" size={16} color={colors.inkFaint} />
             <Text style={styles.hintText}>
-              Mode démo — n'importe quel email/mot de passe vous connecte en tant que vendeuse.
+              Mode démo — n&apos;importe quel email/mot de passe vous connecte en tant que vendeuse.
             </Text>
           </View>
         </View>

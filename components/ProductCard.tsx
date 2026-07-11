@@ -4,13 +4,11 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, shadow, typography } from '../constants/theme';
-import { useAuth } from '../context/AuthContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { Product } from '../data/mockData';
 
 export default function ProductCard({ product }: { product: Product }) {
   const router = useRouter();
-  const { user } = useAuth();
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorited = isFavorite(product.id);
 
