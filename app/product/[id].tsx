@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ProductCard from '../../components/ProductCard';
+import ImageGallery from '../../components/ImageGallery';
 import RatingBadge from '../../components/RatingBadge';
 import { colors, radius, shadow, typography } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
@@ -33,6 +34,7 @@ export default function ProductScreen() {
   const { user } = useAuth();
   const scrollRef = useRef<ScrollView>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
   const { width: screenWidth } = useWindowDimensions();
 
   const goBack = () => {
@@ -115,12 +117,13 @@ export default function ProductScreen() {
             onScroll={onScroll}
           >
             {product.images.map((uri, i) => (
-              <Image
-                key={String(i)}
-                source={{ uri }}
-                style={[styles.heroImage, { width: screenWidth }]}
-                contentFit="cover"
-              />
+              <Pressable key={String(i)} onPress={() => setGalleryIndex(i)}>
+                <Image
+                  source={{ uri }}
+                  style={[styles.heroImage, { width: screenWidth, height: 340 }]}
+                  contentFit="cover"
+                />
+              </Pressable>
             ))}
           </ScrollView>
           <View style={styles.heroShade} />
@@ -288,6 +291,13 @@ export default function ProductScreen() {
           <Text style={styles.contactBtnText}>Ajouter au panier</Text>
         </Pressable>
       </View>
+
+      <ImageGallery
+        images={product.images}
+        visible={galleryIndex !== null}
+        initialIndex={galleryIndex ?? 0}
+        onClose={() => setGalleryIndex(null)}
+      />
     </View>
   );
 }
