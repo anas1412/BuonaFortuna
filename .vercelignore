@@ -1,0 +1,10 @@
+node_modules
+dist
+android
+ios
+.git
+.expo
+.webpack
+.kotlin
+.env
+.env.local
