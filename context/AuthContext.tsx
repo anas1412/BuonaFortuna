@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, Vendor, currentUserWithShop, vendors } from '../data/mockData';
 
 type AuthContextValue = {
@@ -10,11 +11,32 @@ type AuthContextValue = {
   logout: () => void;
 };
 
+const AUTH_KEY = '@buonafortuna_user';
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRestored, setIsRestored] = useState(false);
+
+  // Restore the session from storage on mount (survives a browser reload on web)
+  useEffect(() => {
+    AsyncStorage.getItem(AUTH_KEY)
+      .then((raw) => {
+        if (raw) {
+          try { setUser(JSON.parse(raw)); } catch {}
+        }
+      })
+      .finally(() => setIsRestored(true));
+  }, []);
+
+  // Persist the session, but only once the stored one has been read back,
+  // so the initial null does not overwrite it.
+  useEffect(() => {
+    if (!isRestored) return;
+    if (user) AsyncStorage.setItem(AUTH_KEY, JSON.stringify(user));
+    else AsyncStorage.removeItem(AUTH_KEY);
+  }, [user, isRestored]);
 
   const login = async (email: string, _password: string) => {
     setIsLoading(true);
@@ -57,6 +79,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({ user, isLoading, myVendor, login, signup, logout }),
     [user, isLoading, myVendor],
   );
+
+  // Hold the tree back until the session is known, otherwise the app flashes
+  // the logged-out state before the restored user lands.
+  if (!isRestored) return null;
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
