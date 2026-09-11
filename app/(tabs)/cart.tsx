@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { layout } from '../../constants/layout';
 import CartItemRow from '../../components/CartItemRow';
 import { colors, radius, shadow, typography } from '../../constants/theme';
 import { useCart } from '../../context/CartContext';
@@ -44,7 +45,7 @@ export default function CartScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 160 }}
+        contentContainerStyle={[layout.page, { paddingHorizontal: 20, paddingBottom: 160 }]}
       >
         {items.map((item) => (
           <CartItemRow key={item.product.id} item={item} />

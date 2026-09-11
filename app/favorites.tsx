@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { layout } from '../constants/layout';
 import ProductCard from '../components/ProductCard';
 import { colors, shadow, typography } from '../constants/theme';
 import { useFavorites } from '../context/FavoritesContext';
@@ -54,7 +55,7 @@ export default function FavoritesScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.grid}
+        contentContainerStyle={[layout.page, styles.grid]}
       >
         {favoriteProducts.map((p) => (
           <View key={p.id} style={styles.gridItem}>

@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { layout } from '../../constants/layout';
 import ProductCard from '../../components/ProductCard';
 import VendorRow from '../../components/VendorRow';
 import { colors, radius, shadow, typography } from '../../constants/theme';
@@ -75,7 +76,7 @@ export default function SearchScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 28 }}
+        contentContainerStyle={[layout.page, { paddingBottom: 28 }]}
       >
         {!hasQuery && (
           <>

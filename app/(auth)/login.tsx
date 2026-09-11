@@ -14,6 +14,7 @@ import {
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import Logo from '../../components/Logo';
+import { layout } from '../../constants/layout';
 import { colors, radius, typography } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
 
@@ -54,7 +55,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingHorizontal: horizontalPadding }]}
+        contentContainerStyle={[styles.scroll, layout.form, { paddingHorizontal: horizontalPadding }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >

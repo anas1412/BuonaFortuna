@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { layout } from '../constants/layout';
 import { colors, radius, shadow, typography } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 
@@ -39,7 +40,7 @@ export default function SettingsScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 28 }}
+        contentContainerStyle={[layout.page, { paddingBottom: 28 }]}
       >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Compte</Text>

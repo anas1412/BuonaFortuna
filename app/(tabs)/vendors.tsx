@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import VendorRow from '../../components/VendorRow';
+import { layout, useLayout } from '../../constants/layout';
 import { colors, radius, shadow, typography } from '../../constants/theme';
 import { vendors } from '../../data/mockData';
 
@@ -26,6 +27,7 @@ type SortKey = (typeof SORTS)[number]['key'];
 export default function VendorsScreen() {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortKey>('recommended');
+  const { isDesktop } = useLayout();
 
   const filtered = useMemo(() => {
     let list = [...vendors];
@@ -45,8 +47,16 @@ export default function VendorsScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(v) => v.id}
-          renderItem={({ item }) => <VendorRow vendor={item} />}
-          contentContainerStyle={styles.list}
+          // FlatList cannot change numColumns in place, so the key remounts it.
+          key={isDesktop ? 'grid' : 'list'}
+          numColumns={isDesktop ? 2 : 1}
+          columnWrapperStyle={isDesktop ? styles.column : undefined}
+          renderItem={({ item }) => (
+            <View style={isDesktop ? { flex: 1 } : undefined}>
+              <VendorRow vendor={item} />
+            </View>
+          )}
+          contentContainerStyle={[layout.page, styles.list]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           ListHeaderComponent={
@@ -111,6 +121,7 @@ export default function VendorsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.cream },
   list: { paddingHorizontal: 20, paddingBottom: 24 },
+  column: { gap: 14 },
   header: { paddingTop: 8, paddingBottom: 4 },
   title: { fontFamily: typography.display.fontFamily, fontSize: 26, color: colors.ink },
 

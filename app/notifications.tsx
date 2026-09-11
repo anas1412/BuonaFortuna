@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { layout } from '../constants/layout';
 import { colors, radius, shadow, typography } from '../constants/theme';
 import { notifications, Notification } from '../data/notifications';
 
@@ -40,7 +41,7 @@ export default function NotificationsScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 28 }}
+        contentContainerStyle={[layout.page, { paddingBottom: 28 }]}
       >
         {notifications.map((n) => (
           <View key={n.id} style={[styles.card, !n.read && styles.cardUnread]}>

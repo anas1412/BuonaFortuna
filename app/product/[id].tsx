@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { layout } from '../../constants/layout';
 import ProductCard from '../../components/ProductCard';
 import ImageGallery from '../../components/ImageGallery';
 import RatingBadge from '../../components/RatingBadge';
@@ -105,7 +106,7 @@ export default function ProductScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[layout.page, { paddingBottom: 100 }]}>
         {/* Hero image carousel */}
         <View style={styles.heroWrap}>
           <ScrollView

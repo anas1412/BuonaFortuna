@@ -14,6 +14,7 @@ import Logo from '../../components/Logo';
 import ProductCard from '../../components/ProductCard';
 import SectionHeader from '../../components/SectionHeader';
 import VendorCard from '../../components/VendorCard';
+import { layout, useLayout } from '../../constants/layout';
 import { colors, radius, shadow, typography } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -25,6 +26,7 @@ import {
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { isDesktop, isPhone } = useLayout();
 
   const featured = useMemo(() => getFeaturedVendors(), []);
   const coupsDeCoeur = useMemo(() => products.filter((p) => p.tag === 'Coup de cœur'), []);
@@ -32,9 +34,9 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 28 }}>
-        {/* Barre du haut */}
-        <View style={styles.topBar}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[layout.page, { paddingBottom: 28 }]}>
+        {/* Barre du haut — le header de site la remplace sur desktop */}
+        <View style={[styles.topBar, isDesktop && styles.hidden]}>
           <Logo size={24} />
           <View style={styles.rightActions}>
             {user && (
@@ -73,7 +75,7 @@ export default function HomeScreen() {
         <View style={styles.hero}>
           <View style={{ flex: 1 }}>
             <Text style={styles.heroKicker}>CETTE SEMAINE</Text>
-            <Text style={styles.heroTitle}>Seconde main,{'\n'}premier choix</Text>
+            <Text style={[styles.heroTitle, isDesktop && styles.heroTitleWide]}>Seconde main,{'\n'}premier choix</Text>
             <Pressable style={styles.heroCta} onPress={() => router.push('/(tabs)/vendors')}>
               <Text style={styles.heroCtaText}>Découvrir les boutiques</Text>
               <Ionicons name="arrow-forward" size={14} color={colors.red} />
@@ -81,7 +83,7 @@ export default function HomeScreen() {
           </View>
           <Image
             source={{ uri: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=600' }}
-            style={styles.heroImage}
+            style={[styles.heroImage, isDesktop && styles.heroImageWide]}
             contentFit="cover"
           />
         </View>
@@ -94,23 +96,43 @@ export default function HomeScreen() {
             actionLabel="Tout voir"
             onAction={() => router.push('/(tabs)/vendors')}
           />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingRight: 4, paddingBottom: 8 }}>
-            {featured.map((v) => (
-              <View key={v.id} style={{ width: 250 }}>
-                <VendorCard vendor={v} />
-              </View>
-            ))}
-          </ScrollView>
+          {isPhone ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingRight: 4, paddingBottom: 8 }}>
+              {featured.map((v) => (
+                <View key={v.id} style={{ width: 250 }}>
+                  <VendorCard vendor={v} />
+                </View>
+              ))}
+            </ScrollView>
+          ) : (
+            <View style={layout.grid}>
+              {featured.map((v) => (
+                <View key={v.id} style={styles.gridItem}>
+                  <VendorCard vendor={v} />
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Coups de cœur */}
         <View style={styles.section}>
           <SectionHeader title="Nos coups de cœur" subtitle="Des pièces qui partent vite" />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: 4, paddingBottom: 8 }}>
-            {coupsDeCoeur.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </ScrollView>
+          {isPhone ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: 4, paddingBottom: 8 }}>
+              {coupsDeCoeur.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </ScrollView>
+          ) : (
+            <View style={layout.grid}>
+              {coupsDeCoeur.map((p) => (
+                <View key={p.id} style={styles.gridItemSmall}>
+                  <ProductCard product={p} />
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Près de vous */}
@@ -121,9 +143,11 @@ export default function HomeScreen() {
             actionLabel="Tout voir"
             onAction={() => router.push('/(tabs)/vendors')}
           />
-          <View style={{ gap: 12 }}>
+          <View style={isPhone ? { gap: 12 } : layout.grid}>
             {nearbyVendors.map((v) => (
-              <VendorCard key={v.id} vendor={v} />
+              <View key={v.id} style={isPhone ? undefined : styles.gridItem}>
+                <VendorCard vendor={v} />
+              </View>
             ))}
           </View>
         </View>
@@ -247,5 +271,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     marginLeft: 10,
   },
+  heroImageWide: { width: 260, height: 190, marginLeft: 28 },
+  heroTitleWide: { fontSize: 40, lineHeight: 46 },
   section: { marginTop: 28, marginBottom: 4, paddingHorizontal: 20 },
+  hidden: { display: 'none' },
+  // flexBasis + grow lets rows fill the width and wrap on their own, so the
+  // grid needs no column arithmetic per breakpoint.
+  gridItem: { flexGrow: 1, flexBasis: 260, minWidth: 260 },
+  gridItemSmall: { flexGrow: 1, flexBasis: 180, minWidth: 180 },
 });

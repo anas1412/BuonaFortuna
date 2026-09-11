@@ -4,6 +4,8 @@ import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CartBadge from '../../components/CartBadge';
+import TopNav from '../../components/TopNav';
+import { useLayout } from '../../constants/layout';
 import { colors, typography } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
 
@@ -23,11 +25,15 @@ const BAR_CONTENT_HEIGHT = 56;
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { isDesktop } = useLayout();
 
   return (
     <Tabs
+      // On wide viewports the same routes render as a site header instead.
+      tabBar={isDesktop ? (props) => <TopNav {...props} /> : undefined}
       screenOptions={{
         headerShown: false,
+        tabBarPosition: isDesktop ? 'top' : 'bottom',
         tabBarActiveTintColor: colors.red,
         tabBarInactiveTintColor: colors.inkFaint,
         tabBarStyle: [

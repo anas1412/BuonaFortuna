@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { layout } from '../../constants/layout';
 import ProductCard from '../../components/ProductCard';
 import RatingBadge from '../../components/RatingBadge';
 import { colors, radius, shadow, typography } from '../../constants/theme';
@@ -49,7 +50,7 @@ export default function VendorShopScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[layout.page, { paddingBottom: 40 }]}>
         <View style={styles.coverWrap}>
           <Image source={{ uri: vendor.coverImage }} style={styles.cover} contentFit="cover" />
           <View style={styles.coverShade} />
