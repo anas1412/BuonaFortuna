@@ -1,37 +1,31 @@
 ---
 /**
- * Filter rail + product grid, shared by /catalogue and /c/[slug].
+ * Filter rail + product grid, shared by the catalogue, category pages and the
+ * « bonnes affaires » collections.
  *
- * Every filter is a link that rewrites the query string. That keeps the page
- * crawlable, shareable, and working with JavaScript disabled. On small
- * screens the rail folds into a native <details> — still no script.
+ * Every filter is a link that rewrites the query string: crawlable, shareable,
+ * works with JavaScript disabled. The category section shows the subtree of
+ * wherever you are — departments at the root, rayons inside a department,
+ * types inside a rayon — and only the nodes that have stock. On small screens
+ * the rail folds into a native <details>.
  */
 import ProductCard from './ProductCard.astro';
 import { CONDITIONS } from '../lib/shop';
 
-type Category = { _id: string; name: string; slug: string };
+type Node = { _id: string; name: string; path: string; level: number; parentId?: string; count: number };
 type Product = Parameters<typeof ProductCard>[0]['product'] & { _id: string };
 
 interface Props {
   basePath: string;
-  categories: Category[];
-  /** Fixed by the route on /c/[slug]; chosen via query on /catalogue. */
-  activeCategorySlug: string | null;
-  categoryLocked?: boolean;
+  tree: Node[];
+  /** The category we're inside, if any. */
+  current?: Node | null;
   products: Product[];
   sizes: string[];
   params: URLSearchParams;
 }
 
-const {
-  basePath,
-  categories,
-  activeCategorySlug,
-  categoryLocked = false,
-  products,
-  sizes,
-  params,
-} = Astro.props;
+const { basePath, tree, current = null, products, sizes, params } = Astro.props;
 
 const selectedConditions = params.getAll('etat');
 const selectedSizes = params.getAll('taille');
@@ -44,12 +38,17 @@ const SORTS = [
   { key: 'prix-desc', label: 'Prix décroissant' },
 ];
 
+// What to list in the category section: children of the current node, or the departments.
+const children = tree.filter((c) => (current ? c.parentId === current._id : c.level === 1) && c.count > 0);
+const parent = current?.parentId ? tree.find((c) => c._id === current.parentId) ?? null : null;
+const categoryTitle = current ? `Dans « ${current.name} »` : 'Rayons';
+
 /** Build a URL with one multi-value param toggled, everything else kept. */
 function toggle(key: string, value: string) {
   const next = new URLSearchParams(params);
-  const current = next.getAll(key);
+  const cur = next.getAll(key);
   next.delete(key);
-  const set = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
+  const set = cur.includes(value) ? cur.filter((v) => v !== value) : [...cur, value];
   for (const v of set) next.append(key, v);
   const qs = next.toString();
   return qs ? `${basePath}?${qs}` : basePath;
@@ -63,13 +62,13 @@ function withParam(key: string, value: string | null) {
   return qs ? `${basePath}?${qs}` : basePath;
 }
 
-function categoryHref(slug: string | null) {
-  // Category pages have their own URL; the loose catalogue uses ?categorie=.
+/** Category links keep the non-category filters. */
+function categoryHref(path: string | null) {
   const keep = new URLSearchParams(params);
-  keep.delete('categorie');
+  keep.delete('q');
   const qs = keep.toString();
-  if (slug === null) return qs ? `/catalogue?${qs}` : '/catalogue';
-  return qs ? `/c/${slug}?${qs}` : `/c/${slug}`;
+  const base = path === null ? '/catalogue' : `/c/${path}`;
+  return qs ? `${base}?${qs}` : base;
 }
 
 const filterCount = selectedConditions.length + selectedSizes.length + (q ? 1 : 0);
@@ -77,7 +76,7 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
 ---
 
 <div class="cat">
-  <details class="cat__rail" open={undefined}>
+  <details class="cat__rail">
     <summary class="cat__summary">
       <span>Filtres</span>
       {filterCount > 0 && <span class="chip chip--red">{filterCount}</span>}
@@ -85,26 +84,28 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
 
     <div class="cat__groups">
       <section class="cat__group">
-        <h3 class="cat__title">Catégories</h3>
+        <h3 class="cat__title">{categoryTitle}</h3>
         <ul class="cat__list">
-          <li>
-            <a href={categoryHref(null)} class:list={['cat__item', { 'is-active': !activeCategorySlug }]}>
-              Tout le catalogue
-            </a>
-          </li>
           {
-            categories.map((c) => (
+            current && (
               <li>
-                <a
-                  href={categoryHref(c.slug)}
-                  class:list={['cat__item', { 'is-active': activeCategorySlug === c.slug }]}
-                  aria-current={activeCategorySlug === c.slug ? 'page' : undefined}
-                >
-                  {c.name}
+                <a href={categoryHref(parent ? parent.path : null)} class="cat__item cat__up">
+                  ← {parent ? parent.name : 'Tout le catalogue'}
+                </a>
+              </li>
+            )
+          }
+          {
+            children.map((c) => (
+              <li>
+                <a href={categoryHref(c.path)} class="cat__item">
+                  <span>{c.name}</span>
+                  <span class="cat__n">{c.count}</span>
                 </a>
               </li>
             ))
           }
+          {current && children.length === 0 && <li class="cat__item muted">Toutes les pièces sont ici.</li>}
         </ul>
       </section>
 
@@ -117,7 +118,7 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
               return (
                 <li>
                   <a href={toggle('etat', c)} class:list={['cat__item', 'cat__check', { 'is-active': on }]} rel="nofollow">
-                    <span class="cat__box" aria-hidden="true" />
+                    <span class="cat__box" aria-hidden="true"></span>
                     {c}
                   </a>
                 </li>
@@ -134,11 +135,7 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
             <ul class="cat__sizes">
               {sizes.map((s) => (
                 <li>
-                  <a
-                    href={toggle('taille', s)}
-                    class:list={['cat__size', { 'is-active': selectedSizes.includes(s) }]}
-                    rel="nofollow"
-                  >
+                  <a href={toggle('taille', s)} class:list={['cat__size', { 'is-active': selectedSizes.includes(s) }]} rel="nofollow">
                     {s}
                   </a>
                 </li>
@@ -154,12 +151,8 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
           {
             SORTS.map((s) => (
               <li>
-                <a
-                  href={withParam('tri', s.key)}
-                  class:list={['cat__item', 'cat__radio', { 'is-active': sort === s.key }]}
-                  rel="nofollow"
-                >
-                  <span class="cat__dot" aria-hidden="true" />
+                <a href={withParam('tri', s.key)} class:list={['cat__item', 'cat__radio', { 'is-active': sort === s.key }]} rel="nofollow">
+                  <span class="cat__dot" aria-hidden="true"></span>
                   {s.label}
                 </a>
               </li>
@@ -168,13 +161,7 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
         </ul>
       </section>
 
-      {
-        hasFilters && (
-          <a href={categoryLocked ? basePath : '/catalogue'} class="cat__reset" rel="nofollow">
-            Effacer les filtres
-          </a>
-        )
-      }
+      {hasFilters && <a href={basePath} class="cat__reset" rel="nofollow">Effacer les filtres</a>}
     </div>
   </details>
 
@@ -195,7 +182,7 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
         <div class="cat__empty">
           <h2>Rien ne correspond</h2>
           <p class="muted">Essayez un autre mot ou retirez un filtre — de nouvelles pièces arrivent chaque semaine.</p>
-          <a href={categoryLocked ? basePath : '/catalogue'} class="btn btn--outline">Tout afficher</a>
+          <a href={basePath} class="btn btn--outline">Tout afficher</a>
         </div>
       )
     }
@@ -236,10 +223,15 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
   .cat__item {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
     padding: 6px 0;
     font-size: 14px;
     color: var(--ink-soft);
+  }
+  .cat__check,
+  .cat__radio {
+    justify-content: flex-start;
   }
   .cat__item:hover {
     color: var(--ink);
@@ -247,6 +239,15 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
   .cat__item.is-active {
     color: var(--red);
     font-weight: 600;
+  }
+  .cat__up {
+    color: var(--ink-faint);
+    font-size: 13px;
+    justify-content: flex-start;
+  }
+  .cat__n {
+    font-size: 12px;
+    color: var(--ink-faint);
   }
   .cat__box,
   .cat__dot {
@@ -295,7 +296,6 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
     font-weight: 600;
     color: var(--red);
   }
-
   .cat__count {
     font-size: 14px;
     color: var(--ink-faint);

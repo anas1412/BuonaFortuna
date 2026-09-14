@@ -141,6 +141,19 @@ Go to https://buonafortuna.vercel.app/admin/connexion → « Première connexion
 - HTML responses are `max-age=0`; a short `s-maxage` on catalogue/category pages would cut function invocations once traffic exists.
 - Seed products use Unsplash photos; replace with real ones from the dashboard.
 
+## v2 — category tree, collections (shipped)
+
+Decisions taken (user said "implement what you told me"):
+- **Three-level hierarchy**: Département › Rayon › Type. A product lives in exactly one leaf. Parent pages aggregate descendants. URLs are full paths: `/c/femme/vetements/robes`.
+- **Every leaf seeded, hidden until stocked**: a category with no available/reserved product beneath it is out of menus and the sitemap and renders `noindex` with "bientôt" copy.
+- **Beauté included** (client's list is authoritative). New goods → condition value **« Neuf »** (5th enum value, no new field): pages switch to `NewCondition` in JSON-LD and drop the second-hand wording; the size field doubles as format (« 50 ml », « Teinte 02 »). Maquillage's 4th level (Teint/Yeux/Lèvres) flattened into Maquillage — every leaf kept.
+- **Bonnes affaires = saved filters**, not categories: `/bonnes-affaires/moins-de-30-dt`, `-50-dt`, `-100-dt`, `promotions`, `-20`, `-30`, `-50`, `nouveautes`. Defined in `src/lib/collections.ts`. Price/promo pages indexable. *Meilleures ventes* / *Dernières pièces* kept as **curated tags** (`Meilleure vente`, `Dernière pièce`) the admin sets — the only honest ranking for one-of-a-kind stock.
+- **Vintage** becomes a tag, not a category. `tag` stays a single merchandising label.
+- Migration: schema fields added optional → deploy → `seed:migrateCategoriesV2` (builds tree, remaps the 12 seed products, deletes flat categories) → fields made required → deploy. Done on dev and prod. Tree: 178 nodes (4 départements, 17 rayons, 157 types). Adding a subtree later = edit `seedTree.ts`, run `seed:run` (idempotent) — or add nodes in `/admin/categories`.
+- Verified on dev: header shows stocked departments only; `/c/femme` tiles; `/c/femme/vetements/robes` breadcrumbs; `/c/beaute` noindex + « Bientôt »; collections filter; sitemap lists only stocked categories (20) + 5 indexable collections; product JSON-LD chain.
+- Admin gets a category manager (`/admin/categories`: add leaf under a parent, rename, delete if empty) and a 3-step picker in the product form. Rename keeps slug/path (URLs stay stable).
+- Header links = departments + Bonnes affaires; department/rayon pages show child tiles; rail shows the subtree for the current node.
+
 ## Out of scope
 
-Cart · online payment · buyer accounts · **multivendor** · Arabic · reviews · custom domain
+Cart · online payment · buyer accounts · **multivendor** · Arabic · reviews · custom domain · automatic best-sellers ranking

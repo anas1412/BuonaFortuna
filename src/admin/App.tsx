@@ -2,6 +2,7 @@ import { ConvexAuthProvider, useConvexAuth } from '@convex-dev/auth/react';
 import { ConvexReactClient } from 'convex/react';
 import { useMemo } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router';
+import Categories from './pages/Categories';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import OrderDetail from './pages/OrderDetail';
@@ -27,6 +28,7 @@ export default function App({ convexUrl }: { convexUrl: string }) {
             <Route path="produits" element={<Products />} />
             <Route path="produits/nouveau" element={<ProductForm />} />
             <Route path="produits/:id" element={<ProductForm />} />
+            <Route path="categories" element={<Categories />} />
             <Route path="commandes" element={<Orders />} />
             <Route path="commandes/:id" element={<OrderDetail />} />
           </Route>

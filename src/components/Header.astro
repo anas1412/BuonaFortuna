@@ -1,20 +1,24 @@
 ---
 /**
- * Site header. Wordmark, three links, a search field that is a plain GET form
- * to the catalogue — no JavaScript involved. On small screens the search drops
- * to its own row so it keeps its full width.
+ * Site header. Wordmark, the departments that have stock, « Bonnes affaires »,
+ * and a search field that is a plain GET form to the catalogue — no JavaScript.
+ * On small screens the links and the search each take their own row.
  */
 import Logo from './Logo.astro';
 
+interface Props {
+  departments: { name: string; path: string }[];
+}
+const { departments } = Astro.props;
+
 const path = Astro.url.pathname;
-const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
 const q = Astro.url.searchParams.get('q') ?? '';
 
 const links = [
-  { href: '/', label: 'Accueil' },
-  { href: '/catalogue', label: 'Catalogue' },
-  { href: '/a-propos', label: 'À propos' },
+  ...departments.map((d) => ({ href: `/c/${d.path}`, label: d.name })),
+  { href: '/bonnes-affaires', label: 'Bonnes affaires' },
 ];
+const isActive = (href: string) => path === href || path.startsWith(href + '/');
 ---
 
 <header class="header">
@@ -59,9 +63,9 @@ const links = [
   }
   .header__inner {
     display: grid;
-    grid-template-columns: auto 1fr minmax(220px, 420px);
+    grid-template-columns: auto 1fr minmax(200px, 360px);
     align-items: center;
-    gap: 28px;
+    gap: 24px;
     min-height: 68px;
     padding-block: 10px;
   }
@@ -71,7 +75,8 @@ const links = [
   }
   .header__nav {
     display: flex;
-    gap: 22px;
+    flex-wrap: wrap;
+    gap: 4px 20px;
   }
   .header__link {
     position: relative;
@@ -79,6 +84,7 @@ const links = [
     font-size: 14px;
     color: var(--ink-soft);
     padding-block: 6px;
+    white-space: nowrap;
   }
   .header__link::after {
     content: '';
@@ -127,33 +133,17 @@ const links = [
     color: var(--ink-faint);
   }
 
-  @media (max-width: 767px) {
-    .header__inner {
-      grid-template-columns: 1fr auto;
-      gap: 10px 16px;
-      padding-block: 12px;
-    }
-    .header__nav {
-      gap: 16px;
-      justify-self: end;
-    }
-    .header__link {
-      font-size: 13.5px;
-    }
-    .header__search {
-      grid-column: 1 / -1;
-    }
-  }
-
-  /* Narrow phones: the three links don't fit beside the wordmark — give them a row. */
-  @media (max-width: 480px) {
+  @media (max-width: 899px) {
     .header__inner {
       grid-template-columns: 1fr;
       gap: 8px;
+      padding-block: 12px;
     }
     .header__nav {
-      justify-self: start;
-      gap: 18px;
+      gap: 2px 16px;
+    }
+    .header__link {
+      font-size: 13.5px;
     }
   }
 </style>

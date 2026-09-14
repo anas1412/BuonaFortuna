@@ -1,0 +1,177 @@
+---
+/**
+ * Category pages at every level: /c/femme, /c/femme/vetements, /c/femme/vetements/robes.
+ * A real landing page — heading, paragraph, child tiles — then the grid of
+ * everything beneath. A node with nothing in stock still renders (a shared
+ * link shouldn't 404) but says so and asks not to be indexed.
+ */
+import Catalogue from '../../components/Catalogue.astro';
+import Base from '../../layouts/Base.astro';
+import { api, convex } from '../../lib/convex';
+import { CONDITIONS, SITE_URL, type Condition } from '../../lib/shop';
+
+const path = (Astro.params.path ?? '').replace(/\/+$/, '');
+if (!path) return Astro.redirect('/catalogue', 301);
+
+const params = Astro.url.searchParams;
+const conditions = params.getAll('etat').filter((c): c is Condition => (CONDITIONS as readonly string[]).includes(c));
+const sizes = params.getAll('taille');
+const tri = params.get('tri');
+const sort = tri === 'prix-asc' ? 'priceAsc' : tri === 'prix-desc' ? 'priceDesc' : 'recent';
+
+const [node, tree, result] = await Promise.all([
+  convex.query(api.categories.byPath, { path }),
+  convex.query(api.categories.tree, {}),
+  convex.query(api.products.catalogue, {
+    categoryPath: path,
+    q: params.get('q')?.trim() || undefined,
+    conditions: conditions.length ? conditions : undefined,
+    sizes: sizes.length ? sizes : undefined,
+    sort,
+  }),
+]);
+if (!node) return Astro.rewrite('/404');
+
+const stocked = node.count > 0;
+const isFiltered = [...params.keys()].length > 0;
+const visibleChildren = node.children.filter((c) => c.count > 0);
+const cover = result.products[0]?.images[0]?.url;
+
+const chain = [...node.ancestors, node];
+const title = [node.name, ...node.ancestors.map((a) => a.name).reverse()].join(' — ');
+const isBeauty = node.path.startsWith('beaute');
+const description =
+  node.intro ??
+  `${node.name}${node.ancestors[0] ? ` ${node.ancestors[0].name.toLowerCase()}` : ''} : ${
+    isBeauty ? 'produits neufs sélectionnés' : 'pièces uniques de seconde main'
+  }, livrés partout en Tunisie et payés à la réception.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
+    ...chain.map((c, i) => ({ '@type': 'ListItem', position: i + 2, name: c.name, item: `${SITE_URL}/c/${c.path}` })),
+  ],
+};
+---
+
+<Base title={title} description={description} canonicalPath={`/c/${node.path}`} image={cover} noindex={!stocked || isFiltered} jsonLd={jsonLd}>
+  <section class="container page">
+    <nav class="crumbs" aria-label="Fil d'Ariane">
+      <a href="/">Accueil</a>
+      {
+        node.ancestors.map((a) => (
+          <>
+            <span aria-hidden="true">/</span>
+            <a href={`/c/${a.path}`}>{a.name}</a>
+          </>
+        ))
+      }
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{node.name}</span>
+    </nav>
+
+    <header class="page__head">
+      <h1>{node.name}</h1>
+      {node.intro && <p class="muted">{node.intro}</p>}
+    </header>
+
+    {
+      visibleChildren.length > 0 && (
+        <ul class="tiles" aria-label={`Rayons de ${node.name}`}>
+          {visibleChildren.map((c) => (
+            <li>
+              <a href={`/c/${c.path}`} class="tile">
+                <span class="tile__name">{c.name}</span>
+                <span class="tile__n">{c.count} {c.count === 1 ? 'article' : 'articles'}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    {
+      stocked ? (
+        <Catalogue basePath={`/c/${node.path}`} tree={tree} current={node} products={result.products} sizes={result.sizes} params={params} />
+      ) : (
+        <div class="soon">
+          <h2>Bientôt dans ce rayon</h2>
+          <p class="muted">Rien en stock ici pour le moment — de nouvelles pièces arrivent chaque semaine.</p>
+          <a href={node.ancestors.length ? `/c/${node.ancestors[node.ancestors.length - 1].path}` : '/catalogue'} class="btn btn--outline">
+            Voir {node.ancestors.length ? node.ancestors[node.ancestors.length - 1].name : 'le catalogue'}
+          </a>
+        </div>
+      )
+    }
+  </section>
+</Base>
+
+<style>
+  .page {
+    padding-block: 20px 8px;
+  }
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ink-faint);
+    margin-bottom: 16px;
+  }
+  .crumbs a:hover {
+    color: var(--red);
+  }
+  .crumbs [aria-current] {
+    color: var(--ink-soft);
+  }
+  .page__head {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .page__head p {
+    max-width: 64ch;
+    font-size: 16px;
+  }
+  .tiles {
+    list-style: none;
+    margin: 0 0 32px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+  }
+  .tile {
+    display: grid;
+    gap: 2px;
+    padding: 14px 16px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    transition: border-color 0.15s ease;
+  }
+  .tile:hover {
+    border-color: var(--red);
+  }
+  .tile__name {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .tile:hover .tile__name {
+    color: var(--red);
+  }
+  .tile__n {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+  }
+  .soon {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+    padding: 40px 0 20px;
+    max-width: 48ch;
+  }
+</style>

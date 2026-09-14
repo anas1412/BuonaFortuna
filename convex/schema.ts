@@ -2,11 +2,16 @@ import { authTables } from '@convex-dev/auth/server';
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
+/**
+ * Four grades for second-hand pieces, plus "Neuf" for new goods (the beauty
+ * department). Pages switch wording and structured data on that value.
+ */
 export const condition = v.union(
   v.literal('Comme neuf'),
   v.literal('Très bon état'),
   v.literal('Bon état'),
   v.literal('Satisfaisant'),
+  v.literal('Neuf'),
 );
 
 /**
@@ -42,18 +47,29 @@ export default defineSchema({
     value: v.number(),
   }).index('by_name', ['name']),
 
+  /**
+   * Three levels: Département (1) › Rayon (2) › Type (3). `path` is the full
+   * URL path ("femme/vetements/robes"); `slug` is just the last segment.
+   * Products attach to leaves only. `intro` is the paragraph on the category
+   * page — departments and rayons have one, leaves usually don't.
+   */
   categories: defineTable({
     name: v.string(),
     slug: v.string(),
+    path: v.string(),
+    level: v.number(),
+    parentId: v.optional(v.id('categories')),
     order: v.number(),
-    // A real paragraph for the category page — thin pages don't rank.
-    intro: v.string(),
-  }).index('by_slug', ['slug']),
+    intro: v.optional(v.string()),
+  })
+    .index('by_path', ['path'])
+    .index('by_parent', ['parentId', 'order']),
 
   products: defineTable({
     name: v.string(),
     slug: v.string(),
     brand: v.string(),
+    // Clothing size, shoe size, or a format for new goods ("50 ml", "Teinte 02").
     size: v.string(),
     condition,
     categoryId: v.id('categories'),
@@ -63,6 +79,7 @@ export default defineSchema({
     description: v.string(),
     images: v.array(productImage),
     status: productStatus,
+    // One merchandising label: "Coup de cœur", "Vintage", "Meilleure vente", "Dernière pièce"…
     tag: v.optional(v.string()),
     createdAt: v.number(),
   })

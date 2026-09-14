@@ -1,27 +1,33 @@
 ---
 /**
  * Home. One bold moment — the ink hero with photos bleeding off the edge —
- * then quiet, useful sections: categories, what's new, how buying works.
+ * then quiet, useful sections: departments, what's new, how buying works.
  */
 import ProductCard from '../components/ProductCard.astro';
 import Base from '../layouts/Base.astro';
+import { COLLECTIONS } from '../lib/collections';
 import { api, convex } from '../lib/convex';
 import { DELIVERY_FEE, SITE_URL, formatPrice } from '../lib/shop';
 
-const [categories, latest] = await Promise.all([
-  convex.query(api.categories.list, {}),
+const [tree, latest] = await Promise.all([
+  convex.query(api.categories.tree, {}),
   convex.query(api.products.latest, { limit: 8 }),
 ]);
 
-// The hero strip shows real stock, not stock photos.
+// Departments with stock, and inside each the rayons that have some.
+const departments = tree
+  .filter((c) => c.level === 1 && c.count > 0)
+  .map((d) => ({ ...d, rayons: tree.filter((c) => c.parentId === d._id && c.count > 0) }));
+
 const heroShots = latest.slice(0, 4).map((p) => ({ src: p.images[0]?.url, alt: p.name, href: `/p/${p.slug}` }));
+const deals = COLLECTIONS.filter((c) => c.indexable).slice(0, 4);
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ClothingStore',
   name: 'BuonaFortuna',
   url: SITE_URL,
-  description: 'Friperie en ligne en Tunisie. Pièces uniques de seconde main, paiement à la livraison.',
+  description: 'Friperie en ligne en Tunisie. Pièces uniques de seconde main et produits de beauté, paiement à la livraison.',
   areaServed: { '@type': 'Country', name: 'Tunisie' },
   paymentAccepted: 'Cash',
   currenciesAccepted: 'TND',
@@ -30,7 +36,7 @@ const jsonLd = {
 
 <Base
   title="Friperie en ligne — pièces uniques, paiement à la livraison"
-  description="BuonaFortuna, friperie en ligne en Tunisie. Vêtements, chaussures et accessoires de seconde main choisis un par un. Livraison partout en Tunisie, paiement à la réception."
+  description="BuonaFortuna, friperie en ligne en Tunisie. Vêtements, chaussures et accessoires de seconde main choisis un par un, et une sélection beauté. Livraison partout en Tunisie, paiement à la réception."
   canonicalPath="/"
   jsonLd={jsonLd}
 >
@@ -63,26 +69,44 @@ const jsonLd = {
 
   <section class="container section">
     <div class="section__head">
-      <h2>Par catégorie</h2>
+      <h2>Par rayon</h2>
     </div>
-    <ul class="cats">
+    <ul class="depts">
       {
-        categories.map((c) => (
-          <li>
-            <a href={`/c/${c.slug}`} class="cats__tile">
-              <span class="cats__name">{c.name}</span>
-              <span class="cats__arrow" aria-hidden="true">→</span>
+        departments.map((d) => (
+          <li class="dept">
+            <a href={`/c/${d.path}`} class="dept__head">
+              <span class="dept__name">{d.name}</span>
+              <span class="dept__n">{d.count} {d.count === 1 ? 'article' : 'articles'}</span>
             </a>
+            {d.rayons.length > 0 && (
+              <ul class="dept__rayons">
+                {d.rayons.map((r) => (
+                  <li>
+                    <a href={`/c/${r.path}`}>{r.name}</a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </li>
         ))
       }
+      <li class="dept dept--deals">
+        <a href="/bonnes-affaires" class="dept__head">
+          <span class="dept__name">Bonnes affaires</span>
+          <span class="dept__n">Budget, remises, nouveautés</span>
+        </a>
+        <ul class="dept__rayons">
+          {deals.map((c) => <li><a href={`/bonnes-affaires/${c.slug}`}>{c.title}</a></li>)}
+        </ul>
+      </li>
     </ul>
   </section>
 
   <section class="container section">
     <div class="section__head">
       <h2>Nouveautés</h2>
-      <a href="/catalogue" class="section__more">Tout le catalogue</a>
+      <a href="/bonnes-affaires/nouveautes" class="section__more">Toutes les nouveautés</a>
     </div>
     <div class="grid">
       {latest.map((p, i) => <ProductCard product={p} eager={i < 4} />)}
@@ -114,7 +138,6 @@ const jsonLd = {
 </Base>
 
 <style>
-  /* Hero: full-bleed ink band. The photo strip overflows to the right on purpose. */
   .hero {
     background: var(--ink);
     color: #fff;
@@ -167,7 +190,6 @@ const jsonLd = {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 14px;
-    /* Bleed: the last card runs past the container's right edge. */
     margin-right: calc(-1 * max(var(--gutter), (100vw - var(--content-max)) / 2) - 40px);
   }
   .hero__strip li:nth-child(even) {
@@ -196,38 +218,60 @@ const jsonLd = {
     color: var(--red);
   }
 
-  .cats {
+  /* Departments: a heading plus its stocked rayons, so the tree is visible from the home page. */
+  .depts {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 12px;
   }
-  .cats__tile {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 64px;
-    padding: 0 18px;
+  .dept {
     background: var(--paper);
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
+    padding: 16px 18px 14px;
+    display: grid;
+    gap: 10px;
+    align-content: start;
+  }
+  .dept__head {
+    display: grid;
+    gap: 2px;
+  }
+  .dept__name {
     font-family: var(--font-display);
-    font-size: 17px;
+    font-size: 20px;
     font-weight: 600;
-    transition: border-color 0.15s ease, color 0.15s ease;
   }
-  .cats__tile:hover {
-    border-color: var(--red);
+  .dept__head:hover .dept__name {
     color: var(--red);
   }
-  .cats__arrow {
+  .dept__n {
+    font-size: 12.5px;
     color: var(--ink-faint);
-    font-family: var(--font-body);
   }
-  .cats__tile:hover .cats__arrow {
+  .dept__rayons {
+    list-style: none;
+    margin: 0;
+    padding: 10px 0 0;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+  .dept__rayons a {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .dept__rayons a:hover {
     color: var(--red);
+  }
+  .dept--deals {
+    border-color: var(--red-soft);
+    background: var(--red-softer);
   }
 
   .how__steps {
@@ -280,9 +324,6 @@ const jsonLd = {
     }
     .hero__strip li:nth-child(even) {
       transform: none;
-    }
-    .cats {
-      grid-template-columns: repeat(2, 1fr);
     }
     .how__steps {
       grid-template-columns: 1fr;

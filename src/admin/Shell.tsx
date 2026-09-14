@@ -27,6 +27,7 @@ export default function Shell() {
             {stats && stats.newOrders > 0 && <span className="chip chip--red">{stats.newOrders}</span>}
           </NavLink>
           <NavLink to="/produits">Articles</NavLink>
+          <NavLink to="/categories">Catégories</NavLink>
         </nav>
 
         <footer>

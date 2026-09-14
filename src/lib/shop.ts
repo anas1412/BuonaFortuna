@@ -34,8 +34,10 @@ export const GOVERNORATES = [
   'Sousse', 'Tataouine', 'Tozeur', 'Tunis', 'Zaghouan',
 ] as const;
 
-export const CONDITIONS = ['Comme neuf', 'Très bon état', 'Bon état', 'Satisfaisant'] as const;
+/** Four grades for second-hand pieces, plus "Neuf" for new goods (beauty). */
+export const CONDITIONS = ['Comme neuf', 'Très bon état', 'Bon état', 'Satisfaisant', 'Neuf'] as const;
 export type Condition = (typeof CONDITIONS)[number];
+export const isSecondHand = (c: Condition | string) => c !== 'Neuf';
 
 export type ProductStatus = 'available' | 'reserved' | 'sold';
 export type OrderStatus = 'new' | 'confirmed' | 'delivered' | 'cancelled';

@@ -1,9 +1,10 @@
 import { useMutation, useQuery } from 'convex/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { CONDITIONS, PRODUCT_STATUS_LABEL, type Condition, type ProductStatus } from '../../lib/shop';
+import { KNOWN_TAGS } from '../../lib/collections';
+import { CONDITIONS, PRODUCT_STATUS_LABEL, isSecondHand, type Condition, type ProductStatus } from '../../lib/shop';
 import { dinarsToMillimes, errorMessage, millimesToDinars } from '../util';
 
 type Image = { url: string; storageId?: Id<'_storage'> };
@@ -42,7 +43,7 @@ export default function ProductForm() {
   const isEdit = Boolean(id);
   const navigate = useNavigate();
 
-  const categories = useQuery(api.categories.list);
+  const tree = useQuery(api.categories.tree);
   const existing = useQuery(api.products.adminGet, isEdit ? { id: id as Id<'products'> } : 'skip');
   const create = useMutation(api.products.create);
   const update = useMutation(api.products.update);
@@ -75,11 +76,21 @@ export default function ProductForm() {
     }
   }, [isEdit, existing, loaded]);
 
+  // Three-step picker state, derived from the chosen leaf when editing.
+  const [dept, setDept] = useState<string>('');
+  const [rayon, setRayon] = useState<string>('');
+  const byId = useMemo(() => new Map((tree ?? []).map((c) => [c._id as string, c])), [tree]);
   useEffect(() => {
-    if (!isEdit && categories?.length && !draft.categoryId) {
-      setDraft((d) => ({ ...d, categoryId: categories[0]._id }));
-    }
-  }, [isEdit, categories, draft.categoryId]);
+    if (!tree || !draft.categoryId || dept) return;
+    const leaf = byId.get(draft.categoryId);
+    const r = leaf?.parentId ? byId.get(leaf.parentId) : undefined;
+    const d = r?.parentId ? byId.get(r.parentId) : undefined;
+    if (r) setRayon(r._id);
+    if (d) setDept(d._id);
+  }, [tree, draft.categoryId, dept, byId]);
+  const departments = (tree ?? []).filter((c) => c.level === 1);
+  const rayons = (tree ?? []).filter((c) => c.parentId === dept);
+  const types = (tree ?? []).filter((c) => c.parentId === rayon);
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft((d) => ({ ...d, [key]: value }));
 
@@ -200,8 +211,8 @@ export default function ProductForm() {
             </div>
             <div className="aform__row">
               <div className="field">
-                <label htmlFor="size">Taille</label>
-                <input id="size" className="input" required value={draft.size} onChange={(e) => set('size', e.target.value)} placeholder="38, M, 42, Taille unique…" />
+                <label htmlFor="size">{isSecondHand(draft.condition) ? 'Taille' : 'Format'}</label>
+                <input id="size" className="input" required value={draft.size} onChange={(e) => set('size', e.target.value)} placeholder={isSecondHand(draft.condition) ? '38, M, 42, Taille unique…' : '50 ml, Teinte 02, 100 g…'} />
               </div>
               <div className="field">
                 <label htmlFor="condition">État</label>
@@ -214,22 +225,39 @@ export default function ProductForm() {
                 </select>
               </div>
             </div>
-            <div className="aform__row">
-              <div className="field">
-                <label htmlFor="category">Catégorie</label>
-                <select id="category" className="input" required value={draft.categoryId} onChange={(e) => set('categoryId', e.target.value)}>
-                  <option value="">Choisir…</option>
-                  {categories?.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
+            <div className="field">
+              <label>Rangement</label>
+              <div className="aform__row aform__row--3">
+                <select className="input" required value={dept} aria-label="Département" onChange={(e) => { setDept(e.target.value); setRayon(''); set('categoryId', ''); }}>
+                  <option value="">Département…</option>
+                  {departments.map((c) => (
+                    <option key={c._id} value={c._id}>{c.name}</option>
+                  ))}
+                </select>
+                <select className="input" required value={rayon} aria-label="Rayon" disabled={!dept} onChange={(e) => { setRayon(e.target.value); set('categoryId', ''); }}>
+                  <option value="">Rayon…</option>
+                  {rayons.map((c) => (
+                    <option key={c._id} value={c._id}>{c.name}</option>
+                  ))}
+                </select>
+                <select className="input" required value={draft.categoryId} aria-label="Type" disabled={!rayon} onChange={(e) => set('categoryId', e.target.value)}>
+                  <option value="">Type…</option>
+                  {types.map((c) => (
+                    <option key={c._id} value={c._id}>{c.name}</option>
                   ))}
                 </select>
               </div>
-              <div className="field">
-                <label htmlFor="tag">Étiquette <span className="muted">(facultatif)</span></label>
-                <input id="tag" className="input" value={draft.tag} onChange={(e) => set('tag', e.target.value)} placeholder="Coup de cœur, Nouveau dépôt…" />
-              </div>
+              <p className="small muted">Un type manque ? Ajoutez-le dans <Link to="/categories">Catégories</Link>.</p>
+            </div>
+            <div className="field">
+              <label htmlFor="tag">Étiquette <span className="muted">(facultatif)</span></label>
+              <input id="tag" className="input" list="tag-options" value={draft.tag} onChange={(e) => set('tag', e.target.value)} placeholder="Coup de cœur, Vintage, Meilleure vente…" />
+              <datalist id="tag-options">
+                {KNOWN_TAGS.map((t) => (
+                  <option key={t} value={t} />
+                ))}
+              </datalist>
+              <p className="small muted">« Meilleure vente » et « Dernière pièce » alimentent les pages Bonnes affaires du même nom.</p>
             </div>
             <div className="field">
               <label htmlFor="description">Description</label>

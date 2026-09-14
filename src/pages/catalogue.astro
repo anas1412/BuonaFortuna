@@ -11,8 +11,8 @@ const sizes = params.getAll('taille');
 const tri = params.get('tri');
 const sort = tri === 'prix-asc' ? 'priceAsc' : tri === 'prix-desc' ? 'priceDesc' : 'recent';
 
-const [categories, result] = await Promise.all([
-  convex.query(api.categories.list, {}),
+const [tree, result] = await Promise.all([
+  convex.query(api.categories.tree, {}),
   convex.query(api.products.catalogue, {
     q,
     conditions: conditions.length ? conditions : undefined,
@@ -23,8 +23,8 @@ const [categories, result] = await Promise.all([
 
 const title = q ? `Recherche : ${q}` : 'Catalogue';
 const description = q
-  ? `Résultats pour « ${q} » dans notre friperie en ligne. Pièces uniques de seconde main, paiement à la livraison en Tunisie.`
-  : 'Tout le catalogue BuonaFortuna : vêtements, chaussures et accessoires de seconde main, sélectionnés un par un. Paiement à la livraison partout en Tunisie.';
+  ? `Résultats pour « ${q} ». Pièces uniques, paiement à la livraison en Tunisie.`
+  : 'Tout le catalogue BuonaFortuna : vêtements, chaussures, accessoires et beauté, sélectionnés un par un. Paiement à la livraison partout en Tunisie.';
 
 // Filtered views are for people, not for Google — one canonical, no index on variants.
 const isFiltered = [...params.keys()].length > 0;
@@ -37,14 +37,7 @@ const isFiltered = [...params.keys()].length > 0;
       {!q && <p class="muted">Chaque pièce est unique et part vite. Ce que vous voyez est ce qui est disponible aujourd'hui.</p>}
     </header>
 
-    <Catalogue
-      basePath="/catalogue"
-      categories={categories}
-      activeCategorySlug={null}
-      products={result.products}
-      sizes={result.sizes}
-      params={params}
-    />
+    <Catalogue basePath="/catalogue" tree={tree} products={result.products} sizes={result.sizes} params={params} />
   </section>
 </Base>
 

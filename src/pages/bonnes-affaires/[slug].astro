@@ -1,0 +1,130 @@
+---
+/**
+ * A « bonnes affaires » collection: a saved filter with a name and a URL.
+ * Nothing is filed here — a piece matches or it doesn't — so it can't go stale.
+ */
+import Catalogue from '../../components/Catalogue.astro';
+import Base from '../../layouts/Base.astro';
+import { COLLECTIONS, collectionBySlug } from '../../lib/collections';
+import { api, convex } from '../../lib/convex';
+import { CONDITIONS, SITE_URL, type Condition } from '../../lib/shop';
+
+const { slug } = Astro.params;
+const collection = slug ? collectionBySlug(slug) : null;
+if (!collection) return Astro.rewrite('/404');
+
+const params = Astro.url.searchParams;
+const conditions = params.getAll('etat').filter((c): c is Condition => (CONDITIONS as readonly string[]).includes(c));
+const sizes = params.getAll('taille');
+const tri = params.get('tri');
+const sort = tri === 'prix-asc' ? 'priceAsc' : tri === 'prix-desc' ? 'priceDesc' : collection.filter.sort ?? 'recent';
+
+const [tree, result] = await Promise.all([
+  convex.query(api.categories.tree, {}),
+  convex.query(api.products.catalogue, {
+    q: params.get('q')?.trim() || undefined,
+    conditions: conditions.length ? conditions : undefined,
+    sizes: sizes.length ? sizes : undefined,
+    sort,
+    maxPrice: collection.filter.maxPrice,
+    minDiscount: collection.filter.minDiscount,
+    onSale: collection.filter.onSale,
+    tag: collection.filter.tag,
+  }),
+]);
+
+const isFiltered = [...params.keys()].length > 0;
+const others = COLLECTIONS.filter((c) => c.slug !== collection.slug);
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
+    { '@type': 'ListItem', position: 2, name: 'Bonnes affaires', item: `${SITE_URL}/bonnes-affaires` },
+    { '@type': 'ListItem', position: 3, name: collection.title, item: `${SITE_URL}/bonnes-affaires/${collection.slug}` },
+  ],
+};
+---
+
+<Base
+  title={collection.title}
+  description={collection.intro}
+  canonicalPath={`/bonnes-affaires/${collection.slug}`}
+  image={result.products[0]?.images[0]?.url}
+  noindex={!collection.indexable || isFiltered || result.products.length === 0}
+  jsonLd={jsonLd}
+>
+  <section class="container page">
+    <nav class="crumbs" aria-label="Fil d'Ariane">
+      <a href="/">Accueil</a>
+      <span aria-hidden="true">/</span>
+      <a href="/bonnes-affaires">Bonnes affaires</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{collection.title}</span>
+    </nav>
+
+    <header class="page__head">
+      <h1>{collection.title}</h1>
+      <p class="muted">{collection.intro}</p>
+    </header>
+
+    <ul class="pills" aria-label="Autres bonnes affaires">
+      {others.map((c) => <li><a href={`/bonnes-affaires/${c.slug}`} class="pill">{c.title}</a></li>)}
+    </ul>
+
+    <Catalogue basePath={`/bonnes-affaires/${collection.slug}`} tree={tree} products={result.products} sizes={result.sizes} params={params} />
+  </section>
+</Base>
+
+<style>
+  .page {
+    padding-block: 20px 8px;
+  }
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ink-faint);
+    margin-bottom: 16px;
+  }
+  .crumbs a:hover {
+    color: var(--red);
+  }
+  .crumbs [aria-current] {
+    color: var(--ink-soft);
+  }
+  .page__head {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .page__head p {
+    max-width: 64ch;
+    font-size: 16px;
+  }
+  .pills {
+    list-style: none;
+    margin: 0 0 28px;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: var(--paper);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .pill:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+</style>

@@ -1,0 +1,90 @@
+---
+import Base from '../../layouts/Base.astro';
+import { COLLECTIONS } from '../../lib/collections';
+
+const priced = COLLECTIONS.filter((c) => c.filter.maxPrice !== undefined);
+const discounted = COLLECTIONS.filter((c) => c.filter.minDiscount !== undefined || c.filter.onSale);
+const curated = COLLECTIONS.filter((c) => c.filter.tag || (!c.filter.maxPrice && !c.filter.minDiscount && !c.filter.onSale));
+---
+
+<Base
+  title="Bonnes affaires"
+  description="Promotions, pièces à moins de 30, 50 ou 100 DT, remises de 20 à 50 % et plus, nouveautés : les bonnes affaires BuonaFortuna, livrées partout en Tunisie."
+  canonicalPath="/bonnes-affaires"
+>
+  <section class="container page">
+    <header class="page__head">
+      <h1>Bonnes affaires</h1>
+      <p class="muted">Des raccourcis vers ce qui vaut le coup aujourd'hui. Ces pages se mettent à jour toutes seules avec le stock.</p>
+    </header>
+
+    <div class="groups">
+      <section>
+        <h2>Par budget</h2>
+        <ul class="deals">{priced.map((c) => <li><a href={`/bonnes-affaires/${c.slug}`} class="deal"><span class="deal__t">{c.title}</span><span class="deal__i">{c.intro}</span></a></li>)}</ul>
+      </section>
+      <section>
+        <h2>Par remise</h2>
+        <ul class="deals">{discounted.map((c) => <li><a href={`/bonnes-affaires/${c.slug}`} class="deal"><span class="deal__t">{c.title}</span><span class="deal__i">{c.intro}</span></a></li>)}</ul>
+      </section>
+      <section>
+        <h2>Sélections</h2>
+        <ul class="deals">{curated.map((c) => <li><a href={`/bonnes-affaires/${c.slug}`} class="deal"><span class="deal__t">{c.title}</span><span class="deal__i">{c.intro}</span></a></li>)}</ul>
+      </section>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page {
+    padding-block: 28px 8px;
+  }
+  .page__head {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+  .page__head p {
+    max-width: 60ch;
+  }
+  .groups {
+    display: grid;
+    gap: 36px;
+  }
+  .groups h2 {
+    font-size: 22px;
+    margin-bottom: 14px;
+  }
+  .deals {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+  }
+  .deal {
+    display: grid;
+    gap: 6px;
+    padding: 16px 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    transition: border-color 0.15s ease;
+  }
+  .deal:hover {
+    border-color: var(--red);
+  }
+  .deal__t {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .deal:hover .deal__t {
+    color: var(--red);
+  }
+  .deal__i {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+</style>
