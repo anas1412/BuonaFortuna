@@ -70,11 +70,11 @@ export default function Categories() {
       <div className="ctree">
         {departments.map((d) => (
           <details key={d._id} className="ctree__dept" open={d.count > 0}>
-            <Row node={d} level={1} actions={actions} as="summary" />
+            <Row node={d} level={1} actions={actions} as="summary" hasChildren={childrenOf(d._id).length > 0} />
             <div className="ctree__children">
               {childrenOf(d._id).map((r) => (
                 <details key={r._id} className="ctree__rayon" open={r.count > 0}>
-                  <Row node={r} level={2} actions={actions} as="summary" />
+                  <Row node={r} level={2} actions={actions} as="summary" hasChildren={childrenOf(r._id).length > 0} />
                   <ul className="ctree__leaves">
                     {childrenOf(r._id).map((t) => (
                       <Row key={t._id} node={t} level={3} actions={actions} as="li" />
@@ -102,7 +102,19 @@ type Actions = {
 };
 
 /** One line of the tree, with its in-place editors. */
-function Row({ node, level, actions, as }: { node: Node; level: 1 | 2 | 3; actions: Actions; as: 'summary' | 'li' }) {
+function Row({
+  node,
+  level,
+  actions,
+  as,
+  hasChildren = false,
+}: {
+  node: Node;
+  level: 1 | 2 | 3;
+  actions: Actions;
+  as: 'summary' | 'li';
+  hasChildren?: boolean;
+}) {
   const [mode, setMode] = useState<'view' | 'rename' | 'intro'>('view');
   const stop = (e: React.SyntheticEvent) => {
     // Inside a <summary>, clicks and keys would toggle the <details>.
@@ -115,7 +127,8 @@ function Row({ node, level, actions, as }: { node: Node; level: 1 | 2 | 3; actio
       <button type="button" onClick={() => setMode('rename')}>
         Renommer
       </button>
-      {node.count === 0 && (
+      {/* Only an empty shelf can go: nothing in stock beneath it, and no sub-categories. */}
+      {node.count === 0 && !hasChildren && (
         <ConfirmButton
           label="Supprimer"
           confirmLabel="Oui, supprimer"
