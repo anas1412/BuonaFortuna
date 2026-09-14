@@ -1,0 +1,63 @@
+---
+import Catalogue from '../components/Catalogue.astro';
+import Base from '../layouts/Base.astro';
+import { api, convex } from '../lib/convex';
+import { CONDITIONS, type Condition } from '../lib/shop';
+
+const params = Astro.url.searchParams;
+const q = params.get('q')?.trim() || undefined;
+const conditions = params.getAll('etat').filter((c): c is Condition => (CONDITIONS as readonly string[]).includes(c));
+const sizes = params.getAll('taille');
+const tri = params.get('tri');
+const sort = tri === 'prix-asc' ? 'priceAsc' : tri === 'prix-desc' ? 'priceDesc' : 'recent';
+
+const [categories, result] = await Promise.all([
+  convex.query(api.categories.list, {}),
+  convex.query(api.products.catalogue, {
+    q,
+    conditions: conditions.length ? conditions : undefined,
+    sizes: sizes.length ? sizes : undefined,
+    sort,
+  }),
+]);
+
+const title = q ? `Recherche : ${q}` : 'Catalogue';
+const description = q
+  ? `Résultats pour « ${q} » dans notre friperie en ligne. Pièces uniques de seconde main, paiement à la livraison en Tunisie.`
+  : 'Tout le catalogue BuonaFortuna : vêtements, chaussures et accessoires de seconde main, sélectionnés un par un. Paiement à la livraison partout en Tunisie.';
+
+// Filtered views are for people, not for Google — one canonical, no index on variants.
+const isFiltered = [...params.keys()].length > 0;
+---
+
+<Base title={title} description={description} canonicalPath="/catalogue" noindex={isFiltered}>
+  <section class="container page">
+    <header class="page__head">
+      <h1>{q ? `Résultats pour « ${q} »` : 'Catalogue'}</h1>
+      {!q && <p class="muted">Chaque pièce est unique et part vite. Ce que vous voyez est ce qui est disponible aujourd'hui.</p>}
+    </header>
+
+    <Catalogue
+      basePath="/catalogue"
+      categories={categories}
+      activeCategorySlug={null}
+      products={result.products}
+      sizes={result.sizes}
+      params={params}
+    />
+  </section>
+</Base>
+
+<style>
+  .page {
+    padding-block: 28px 8px;
+  }
+  .page__head {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  .page__head p {
+    max-width: 60ch;
+  }
+</style>

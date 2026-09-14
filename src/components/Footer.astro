@@ -1,0 +1,100 @@
+---
+import Logo from './Logo.astro';
+import { convex, api } from '../lib/convex';
+
+const categories = await convex.query(api.categories.list, {});
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <Logo size={22} />
+      <p class="muted">Friperie en ligne. Des pièces uniques, choisies une par une.</p>
+      <p class="footer__cod">Paiement à la livraison, partout en Tunisie.</p>
+    </div>
+
+    <nav class="footer__col" aria-label="Catégories">
+      <h3 class="footer__title">Catégories</h3>
+      <ul>
+        {
+          categories.map((c) => (
+            <li>
+              <a href={`/c/${c.slug}`}>{c.name}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <nav class="footer__col" aria-label="Boutique">
+      <h3 class="footer__title">Boutique</h3>
+      <ul>
+        <li><a href="/catalogue">Tout le catalogue</a></li>
+        <li><a href="/a-propos">À propos</a></li>
+        <li><a href="/a-propos#livraison">Livraison et paiement</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="container footer__legal">
+    <span>© {year} BuonaFortuna</span>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    margin-top: 72px;
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+  }
+  .footer__inner {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 32px;
+    padding-block: 44px 28px;
+  }
+  .footer__brand p {
+    margin-top: 12px;
+    max-width: 36ch;
+    font-size: 14px;
+  }
+  .footer__cod {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .footer__title {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  .footer__col ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+  .footer__col a {
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .footer__col a:hover {
+    color: var(--red);
+  }
+  .footer__legal {
+    padding-block: 16px 24px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-faint);
+  }
+  @media (max-width: 767px) {
+    .footer__inner {
+      grid-template-columns: 1fr 1fr;
+    }
+    .footer__brand {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

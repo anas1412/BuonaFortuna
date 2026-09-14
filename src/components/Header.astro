@@ -1,0 +1,147 @@
+---
+/**
+ * Site header. Wordmark, three links, a search field that is a plain GET form
+ * to the catalogue — no JavaScript involved. On small screens the search drops
+ * to its own row so it keeps its full width.
+ */
+import Logo from './Logo.astro';
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const q = Astro.url.searchParams.get('q') ?? '';
+
+const links = [
+  { href: '/', label: 'Accueil' },
+  { href: '/catalogue', label: 'Catalogue' },
+  { href: '/a-propos', label: 'À propos' },
+];
+---
+
+<header class="header">
+  <div class="container header__inner">
+    <a href="/" class="header__brand" aria-label="BuonaFortuna, accueil">
+      <Logo size={22} />
+    </a>
+
+    <nav class="header__nav" aria-label="Navigation principale">
+      {
+        links.map((l) => (
+          <a href={l.href} class:list={['header__link', { 'is-active': isActive(l.href) }]}>
+            {l.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <form class="header__search" action="/catalogue" method="get" role="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m20 20-3.5-3.5"></path>
+      </svg>
+      <input
+        type="search"
+        name="q"
+        value={q}
+        placeholder="Rechercher un article, une marque…"
+        aria-label="Rechercher dans le catalogue"
+      />
+    </form>
+  </div>
+</header>
+
+<style>
+  .header {
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .header__inner {
+    display: grid;
+    grid-template-columns: auto 1fr minmax(220px, 420px);
+    align-items: center;
+    gap: 28px;
+    min-height: 68px;
+    padding-block: 10px;
+  }
+  .header__brand {
+    display: inline-flex;
+    align-items: center;
+  }
+  .header__nav {
+    display: flex;
+    gap: 22px;
+  }
+  .header__link {
+    position: relative;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--ink-soft);
+    padding-block: 6px;
+  }
+  .header__link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: transparent;
+  }
+  .header__link:hover {
+    color: var(--ink);
+  }
+  .header__link.is-active {
+    color: var(--red);
+  }
+  .header__link.is-active::after {
+    background: var(--red);
+  }
+  .header__search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 14px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    color: var(--ink-faint);
+  }
+  .header__search:focus-within {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px var(--red-soft);
+  }
+  .header__search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 14px;
+    outline: none;
+  }
+  .header__search input::placeholder {
+    color: var(--ink-faint);
+  }
+
+  @media (max-width: 767px) {
+    .header__inner {
+      grid-template-columns: 1fr auto;
+      gap: 10px 16px;
+      padding-block: 12px;
+    }
+    .header__nav {
+      gap: 16px;
+      justify-self: end;
+    }
+    .header__link {
+      font-size: 13.5px;
+    }
+    .header__search {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

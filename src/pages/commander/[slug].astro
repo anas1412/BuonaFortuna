@@ -1,0 +1,286 @@
+---
+/**
+ * Order form. No account, no card: name, phone, where to deliver.
+ * Plain POST to an Astro Action; on success we redirect to the thank-you page.
+ */
+import { actions, isInputError } from 'astro:actions';
+import Base from '../../layouts/Base.astro';
+import { api, convex } from '../../lib/convex';
+import { DELIVERY_FEE, GOVERNORATES, formatPrice } from '../../lib/shop';
+
+const { slug } = Astro.params;
+const product = slug ? await convex.query(api.products.bySlug, { slug }) : null;
+if (!product) return Astro.rewrite('/404');
+
+const result = Astro.getActionResult(actions.order);
+if (result && !result.error) return Astro.redirect(`/merci/${result.data.id}`, 303);
+
+const fieldErrors = isInputError(result?.error) ? result.error.fields : {};
+const formError = result?.error && !isInputError(result.error) ? result.error.message : null;
+
+const total = product.price + DELIVERY_FEE;
+const cover = product.images[0]?.url;
+---
+
+<Base
+  title={`Commander : ${product.name}`}
+  description={`Commande de ${product.name} ${product.brand}, paiement à la livraison.`}
+  canonicalPath={`/commander/${product.slug}`}
+  noindex
+>
+  <section class="container order">
+    <a href={`/p/${product.slug}`} class="order__back">← Retour à l'article</a>
+
+    <div class="order__grid">
+      <div class="order__form">
+        <h1>Commander</h1>
+        <p class="muted order__lead">
+          Remplissez vos coordonnées, nous vous appelons pour confirmer, et vous payez
+          <strong>{formatPrice(total)}</strong> en espèces à la livraison.
+        </p>
+
+        {
+          product.status !== 'available' ? (
+            <div class="order__blocked">
+              <span class="chip chip--amber">{product.status === 'reserved' ? 'Réservé' : 'Vendu'}</span>
+              <p>Cette pièce n'est plus disponible à la commande.</p>
+              <a href="/catalogue" class="btn btn--outline">Voir le catalogue</a>
+            </div>
+          ) : (
+            <form method="POST" action={actions.order} class="form" novalidate={false}>
+              <input type="hidden" name="productSlug" value={product.slug} />
+
+              {formError && (
+                <p class="form__error" role="alert">
+                  {formError}{' '}
+                  <a href={`/p/${product.slug}`}>Revoir l'article</a>
+                </p>
+              )}
+
+              <div class="field">
+                <label for="name">Nom complet</label>
+                <input
+                  id="name"
+                  name="name"
+                  class:list={['input', { 'input--error': fieldErrors.name }]}
+                  required
+                  minlength="2"
+                  maxlength="80"
+                  autocomplete="name"
+                  aria-invalid={fieldErrors.name ? 'true' : undefined}
+                  aria-describedby={fieldErrors.name ? 'name-error' : undefined}
+                />
+                {fieldErrors.name && <p id="name-error" class="field-error">{fieldErrors.name[0]}</p>}
+              </div>
+
+              <div class="field">
+                <label for="phone">Téléphone</label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  class:list={['input', { 'input--error': fieldErrors.phone }]}
+                  required
+                  inputmode="numeric"
+                  autocomplete="tel-national"
+                  placeholder="20 123 456"
+                  aria-invalid={fieldErrors.phone ? 'true' : undefined}
+                  aria-describedby="phone-hint"
+                />
+                <p id="phone-hint" class="small muted">C'est ce numéro que nous appelons pour confirmer.</p>
+                {fieldErrors.phone && <p class="field-error">{fieldErrors.phone[0]}</p>}
+              </div>
+
+              <div class="field">
+                <label for="city">Gouvernorat</label>
+                <select
+                  id="city"
+                  name="city"
+                  class:list={['input', { 'input--error': fieldErrors.city }]}
+                  required
+                  autocomplete="address-level1"
+                >
+                  <option value="">Choisir…</option>
+                  {GOVERNORATES.map((g) => <option value={g}>{g}</option>)}
+                </select>
+                {fieldErrors.city && <p class="field-error">{fieldErrors.city[0]}</p>}
+              </div>
+
+              <div class="field">
+                <label for="address">Adresse de livraison</label>
+                <textarea
+                  id="address"
+                  name="address"
+                  class:list={['input', { 'input--error': fieldErrors.address }]}
+                  required
+                  minlength="6"
+                  maxlength="240"
+                  rows="3"
+                  autocomplete="street-address"
+                  placeholder="Rue, quartier, immeuble, ou un repère utile pour le livreur"
+                ></textarea>
+                {fieldErrors.address && <p class="field-error">{fieldErrors.address[0]}</p>}
+              </div>
+
+              <div class="field">
+                <label for="note">Remarque <span class="muted">(facultatif)</span></label>
+                <textarea id="note" name="note" class="input" maxlength="500" rows="2" placeholder="Horaire préféré, code d'entrée…"></textarea>
+              </div>
+
+              <button type="submit" class="btn btn--primary btn--block order__submit">
+                Confirmer la commande — {formatPrice(total)} à la livraison
+              </button>
+              <p class="small muted">Aucun paiement en ligne. Vous ne payez qu'à la réception du colis.</p>
+            </form>
+          )
+        }
+      </div>
+
+      <aside class="order__summary card" aria-label="Récapitulatif">
+        <div class="order__item">
+          {cover && <img src={cover} alt="" width="96" height="120" loading="eager" />}
+          <div>
+            <p class="eyebrow">{product.brand} · Taille {product.size}</p>
+            <p class="order__name">{product.name}</p>
+            <p class="small muted">{product.condition}</p>
+          </div>
+        </div>
+        <dl class="order__lines">
+          <div><dt>Article</dt><dd>{formatPrice(product.price)}</dd></div>
+          <div><dt>Livraison</dt><dd>{formatPrice(DELIVERY_FEE)}</dd></div>
+          <div class="order__total"><dt>À payer à la livraison</dt><dd>{formatPrice(total)}</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .order {
+    padding-block: 24px 8px;
+  }
+  .order__back {
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .order__back:hover {
+    color: var(--red);
+  }
+  .order__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(280px, 4fr);
+    gap: 48px;
+    align-items: start;
+    margin-top: 20px;
+  }
+  .order__form h1 {
+    margin-bottom: 10px;
+  }
+  .order__lead {
+    max-width: 56ch;
+    margin-bottom: 26px;
+  }
+  .order__lead strong {
+    color: var(--ink);
+  }
+  .form {
+    display: grid;
+    gap: 18px;
+    max-width: 520px;
+  }
+  .form__error {
+    padding: 12px 14px;
+    background: var(--red-soft);
+    color: var(--red-deep);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+  }
+  .form__error a {
+    font-weight: 600;
+    text-decoration: underline;
+  }
+  .order__submit {
+    min-height: 52px;
+    margin-top: 6px;
+  }
+  .order__blocked {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    padding: 20px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+  }
+
+  .order__summary {
+    position: sticky;
+    top: 88px;
+    padding: 18px;
+    display: grid;
+    gap: 16px;
+  }
+  .order__item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .order__item img {
+    width: 80px;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    background: var(--line);
+    flex: none;
+  }
+  .order__name {
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .order__lines {
+    margin: 0;
+    display: grid;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .order__lines div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .order__lines dd {
+    margin: 0;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .order__total {
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+  .order__total dt {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .order__total dd {
+    font-family: var(--font-display);
+    font-size: 20px;
+    color: var(--red);
+  }
+
+  @media (max-width: 899px) {
+    .order__grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .order__summary {
+      position: static;
+      order: -1;
+    }
+    .form {
+      max-width: none;
+    }
+  }
+</style>

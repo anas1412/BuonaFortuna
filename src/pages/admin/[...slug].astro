@@ -1,0 +1,14 @@
+---
+/**
+ * Back office. One React island owns every /admin/* route; it renders only in
+ * the browser because the auth session lives in local storage. Never indexed.
+ */
+import AdminApp from '../../admin/App';
+import Base from '../../layouts/Base.astro';
+import { convexUrl } from '../../lib/convex';
+import '../../styles/admin.css';
+---
+
+<Base title="Administration" description="Espace de gestion BuonaFortuna." noindex bare>
+  <AdminApp client:only="react" convexUrl={convexUrl()} />
+</Base>

@@ -1,0 +1,31 @@
+---
+/** Wordmark: "Buona" in ink, "Fortuna" in coccinelle red. */
+interface Props {
+  size?: number;
+  light?: boolean;
+}
+const { size = 24, light = false } = Astro.props;
+---
+
+<span class:list={['logo', { 'logo--light': light }]} style={`font-size:${size}px`}>
+  <span class="logo__a">Buona</span><span class="logo__b">Fortuna</span>
+</span>
+
+<style>
+  .logo {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .logo__a {
+    color: var(--ink);
+  }
+  .logo__b {
+    color: var(--red);
+  }
+  .logo--light .logo__a {
+    color: #fff;
+  }
+</style>

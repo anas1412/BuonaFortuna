@@ -1,0 +1,330 @@
+---
+/**
+ * Filter rail + product grid, shared by /catalogue and /c/[slug].
+ * Every control is a link. Nothing here ships JavaScript.
+ */
+import ProductCard from './ProductCard.astro';
+import { convex, api } from '../lib/convex';
+import { SORTS, filterHref, hasActiveFilters, readFilters } from '../lib/catalogue';
+import { CONDITIONS } from '../lib/shop';
+
+interface Props {
+  /** Category slug when rendering /c/[slug]; undefined for the full catalogue. */
+  categorySlug?: string;
+  basePath: string;
+  heading: string;
+  intro?: string;
+}
+
+const { categorySlug, basePath, heading, intro } = Astro.props;
+const filters = readFilters(Astro.url);
+
+const [result, categories] = await Promise.all([
+  convex.query(api.products.catalogue, {
+    categorySlug,
+    conditions: filters.conditions.length ? filters.conditions : undefined,
+    sizes: filters.sizes.length ? filters.sizes : undefined,
+    q: filters.q || undefined,
+    sort: filters.sort,
+  }),
+  convex.query(api.categories.list, {}),
+]);
+
+const { products, sizes } = result;
+const count = products.length;
+const countLabel = `${count} ${count === 1 ? 'article' : 'articles'}`;
+const active = hasActiveFilters(filters);
+---
+
+<div class="container cat">
+  <header class="cat__head">
+    <div>
+      <h1>{heading}</h1>
+      {intro && <p class="cat__intro">{intro}</p>}
+    </div>
+    <p class="cat__count" aria-live="polite">
+      {countLabel}{filters.q && <span> pour « {filters.q} »</span>}
+    </p>
+  </header>
+
+  <div class="cat__columns">
+    <aside class="rail" aria-label="Filtres">
+      <section class="rail__group">
+        <h2 class="rail__title">Catégories</h2>
+        <ul class="rail__list">
+          <li>
+            <a href="/catalogue" class:list={['rail__item', { 'is-active': !categorySlug }]}>Toutes</a>
+          </li>
+          {
+            categories.map((c) => (
+              <li>
+                <a href={`/c/${c.slug}`} class:list={['rail__item', { 'is-active': categorySlug === c.slug }]}>
+                  {c.name}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="rail__group">
+        <h2 class="rail__title">État</h2>
+        <ul class="rail__list">
+          {
+            CONDITIONS.map((c) => {
+              const on = filters.conditions.includes(c);
+              return (
+                <li>
+                  <a
+                    href={filterHref(basePath, filters, { toggleCondition: c })}
+                    class:list={['rail__item rail__item--check', { 'is-active': on }]}
+                    aria-pressed={on ? 'true' : 'false'}
+                  >
+                    <span class="rail__box" aria-hidden="true"></span>
+                    {c}
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </section>
+
+      {
+        sizes.length > 0 && (
+          <section class="rail__group">
+            <h2 class="rail__title">Taille</h2>
+            <ul class="rail__sizes">
+              {sizes.map((s) => {
+                const on = filters.sizes.includes(s);
+                return (
+                  <li>
+                    <a
+                      href={filterHref(basePath, filters, { toggleSize: s })}
+                      class:list={['rail__size', { 'is-active': on }]}
+                      aria-pressed={on ? 'true' : 'false'}
+                    >
+                      {s}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )
+      }
+
+      <section class="rail__group">
+        <h2 class="rail__title">Trier par</h2>
+        <ul class="rail__list">
+          {
+            SORTS.map((s) => {
+              const on = filters.sort === s.key;
+              return (
+                <li>
+                  <a
+                    href={filterHref(basePath, filters, { sort: s.key })}
+                    class:list={['rail__item rail__item--radio', { 'is-active': on }]}
+                    aria-pressed={on ? 'true' : 'false'}
+                  >
+                    <span class="rail__dot" aria-hidden="true"></span>
+                    {s.label}
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </section>
+
+      {
+        active && (
+          <a href={filterHref(basePath, filters, { clear: true })} class="rail__reset">
+            Réinitialiser les filtres
+          </a>
+        )
+      }
+    </aside>
+
+    <section class="cat__main" aria-label="Articles">
+      {
+        count > 0 ? (
+          <div class="grid">
+            {products.map((p, i) => (
+              <ProductCard product={p} eager={i < 4} />
+            ))}
+          </div>
+        ) : (
+          <div class="cat__empty">
+            <h2>Aucun article ne correspond</h2>
+            <p class="muted">Essayez un autre mot ou retirez un filtre.</p>
+            <a href={filterHref(basePath, filters, { clear: true })} class="btn btn--outline">
+              Tout afficher
+            </a>
+          </div>
+        )
+      }
+    </section>
+  </div>
+</div>
+
+<style>
+  .cat {
+    padding-block: 36px 12px;
+  }
+  .cat__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 24px;
+  }
+  .cat__intro {
+    margin-top: 10px;
+    max-width: 62ch;
+    color: var(--ink-soft);
+  }
+  .cat__count {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: var(--ink-faint);
+  }
+  .cat__columns {
+    display: grid;
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: 36px;
+    align-items: start;
+  }
+
+  .rail__group + .rail__group {
+    margin-top: 26px;
+  }
+  .rail__title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .rail__list,
+  .rail__sizes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .rail__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .rail__item:hover {
+    color: var(--ink);
+  }
+  .rail__item.is-active {
+    color: var(--red);
+    font-weight: 600;
+  }
+  .rail__box,
+  .rail__dot {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 4px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .rail__dot {
+    border-radius: 50%;
+  }
+  .is-active .rail__box,
+  .is-active .rail__dot {
+    background: var(--red);
+    border-color: var(--red);
+  }
+  .is-active .rail__box::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .is-active .rail__dot::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .rail__sizes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .rail__size {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: var(--paper);
+  }
+  .rail__size.is-active {
+    background: var(--red);
+    border-color: var(--red);
+    color: #fff;
+  }
+  .rail__reset {
+    display: inline-block;
+    margin-top: 22px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--red);
+  }
+
+  .cat__empty {
+    padding: 64px 0;
+    text-align: center;
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+  }
+  .cat__empty .btn {
+    margin-top: 10px;
+  }
+
+  @media (max-width: 900px) {
+    .cat__head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .cat__columns {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    /* Rail collapses into a compact row of groups on phones. */
+    .rail {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .rail__group + .rail__group {
+      margin-top: 0;
+    }
+    .rail__reset {
+      grid-column: 1 / -1;
+      margin-top: 0;
+    }
+  }
+</style>

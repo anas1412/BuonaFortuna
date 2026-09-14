@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /commander/
+Disallow: /merci/
+
+Sitemap: https://buonafortuna.vercel.app/sitemap.xml

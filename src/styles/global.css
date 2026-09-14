@@ -1,0 +1,320 @@
+/* BuonaFortuna — design tokens and the handful of shared primitives.
+   Everything page-specific lives in the component's own <style>. */
+
+:root {
+  /* Brand */
+  --cream: #fffcf9;
+  --paper: #ffffff;
+  --ink: #1a1512;
+  --ink-soft: #4a423e;
+  --ink-faint: #8a817c;
+  --red: #d8232a;
+  --red-deep: #a5161c;
+  --red-soft: #fbe1df;
+  --red-softer: #fdf1f0;
+  --line: #f0e7e1;
+  --line-strong: #e4d6cc;
+  --gold: #e8a93a;
+  --green: #2e7d5b;
+  --amber: #c97a1a;
+  --amber-soft: #fbeedb;
+
+  /* Type */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Layout */
+  --content-max: 1120px;
+  --narrow-max: 720px;
+  --form-max: 480px;
+  --gutter: 20px;
+  --rail: 232px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+}
+
+/* ---- reset ------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+picture,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--ink);
+}
+
+h1 {
+  font-size: clamp(30px, 4vw, 40px);
+}
+h2 {
+  font-size: clamp(24px, 3vw, 28px);
+}
+h3 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- layout ------------------------------------------------------------ */
+
+.container {
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.container--narrow {
+  max-width: var(--narrow-max);
+}
+
+.container--form {
+  max-width: var(--form-max);
+}
+
+.stack > * + * {
+  margin-top: var(--stack, 16px);
+}
+
+/* Product grid: fills the row and wraps on its own. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px 16px;
+}
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 12px;
+  }
+}
+
+/* ---- text -------------------------------------------------------------- */
+
+.eyebrow {
+  font-size: 13px;
+  color: var(--ink-faint);
+}
+
+.muted {
+  color: var(--ink-soft);
+}
+
+.small {
+  font-size: 13px;
+}
+
+/* ---- buttons ----------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 22px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.btn--primary {
+  background: var(--red);
+  color: #fff;
+}
+.btn--primary:hover {
+  background: var(--red-deep);
+}
+.btn--outline {
+  border-color: var(--red);
+  color: var(--red);
+  background: transparent;
+}
+.btn--outline:hover {
+  background: var(--red-softer);
+}
+.btn--ghost {
+  color: var(--ink);
+  background: transparent;
+}
+.btn--ghost:hover {
+  background: var(--paper);
+}
+.btn--block {
+  width: 100%;
+}
+.btn[disabled],
+.btn[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---- chips ------------------------------------------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.chip--ink {
+  background: var(--ink);
+  color: #fff;
+}
+.chip--paper {
+  background: rgba(255, 252, 249, 0.94);
+  color: var(--ink);
+}
+.chip--amber {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+.chip--red {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+/* ---- cards ------------------------------------------------------------- */
+
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+/* ---- forms ------------------------------------------------------------- */
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+.field > label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.input {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px;
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-soft);
+}
+.input--error {
+  border-color: var(--red);
+}
+textarea.input {
+  min-height: 96px;
+  resize: vertical;
+}
+.field-error {
+  font-size: 13px;
+  color: var(--red);
+}
+
+/* ---- utilities --------------------------------------------------------- */
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.price {
+  font-weight: 700;
+  color: var(--red);
+}
+.price--was {
+  font-weight: 500;
+  color: var(--ink-faint);
+  text-decoration: line-through;
+}

@@ -1,0 +1,157 @@
+---
+import Base from '../layouts/Base.astro';
+import { CONTACT_EMAIL, CONTACT_PHONE, DELIVERY_FEE, INSTAGRAM_HANDLE, formatPrice, whatsappLink } from '../lib/shop';
+
+const wa = CONTACT_PHONE ? whatsappLink(CONTACT_PHONE) : null;
+const hasContact = Boolean(CONTACT_PHONE || CONTACT_EMAIL || INSTAGRAM_HANDLE);
+---
+
+<Base
+  title="À propos — qui nous sommes, comment ça marche"
+  description="BuonaFortuna est une friperie en ligne tunisienne. Comment nous choisissons les pièces, ce que veulent dire nos états, et comment se passent la livraison et le paiement."
+  canonicalPath="/a-propos"
+>
+  <article class="container container--narrow about">
+    <header class="about__head">
+      <p class="eyebrow">À propos</p>
+      <h1>Une friperie, une pièce à la fois.</h1>
+      <p class="about__lead">
+        BuonaFortuna, c'est une sélection de vêtements de seconde main que nous chinons,
+        vérifions et photographions nous-mêmes. Rien n'est en stock par dizaines : chaque
+        fiche est un article réel, dans la taille et l'état indiqués.
+      </p>
+    </header>
+
+    <section class="about__section">
+      <h2>Ce que veulent dire nos états</h2>
+      <dl class="about__states">
+        <div><dt>Comme neuf</dt><dd>Aucune trace de port visible. Souvent encore étiqueté.</dd></div>
+        <div><dt>Très bon état</dt><dd>Porté quelques fois, rien à signaler à l'œil.</dd></div>
+        <div><dt>Bon état</dt><dd>Un léger signe d'usage, toujours mentionné dans la description.</dd></div>
+        <div><dt>Satisfaisant</dt><dd>Un défaut visible, décrit et photographié, reflété dans le prix.</dd></div>
+      </dl>
+    </section>
+
+    <section class="about__section" id="livraison">
+      <h2>Livraison et paiement</h2>
+      <ol class="about__steps">
+        <li>Vous commandez depuis la fiche de l'article : nom, téléphone, adresse. Pas de compte.</li>
+        <li>Nous vous appelons pour confirmer. La pièce est réservée pour vous dès la commande.</li>
+        <li>Le colis part. Comptez 2 à 5 jours selon le gouvernorat.</li>
+        <li>Vous payez <strong>{formatPrice(DELIVERY_FEE)}</strong> de livraison plus le prix de l'article, en espèces, au livreur.</li>
+      </ol>
+      <p class="muted">
+        Nous livrons dans les 24 gouvernorats. Une pièce ne vous convient pas à la réception ?
+        Dites-le au livreur : vous ne payez que si vous la gardez.
+      </p>
+    </section>
+
+    {
+      hasContact && (
+        <section class="about__section" id="contact">
+          <h2>Nous contacter</h2>
+          <ul class="about__contact">
+            {wa && (
+              <li>
+                <a href={wa} rel="noopener">WhatsApp</a>
+              </li>
+            )}
+            {CONTACT_PHONE && (
+              <li>
+                <a href={`tel:+216${CONTACT_PHONE}`}>+216 {CONTACT_PHONE}</a>
+              </li>
+            )}
+            {CONTACT_EMAIL && (
+              <li>
+                <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+              </li>
+            )}
+            {INSTAGRAM_HANDLE && (
+              <li>
+                <a href={`https://instagram.com/${INSTAGRAM_HANDLE}`} rel="noopener">
+                  @{INSTAGRAM_HANDLE}
+                </a>
+              </li>
+            )}
+          </ul>
+        </section>
+      )
+    }
+  </article>
+</Base>
+
+<style>
+  .about {
+    padding-block: 48px 24px;
+    display: grid;
+    gap: 44px;
+  }
+  .about__head {
+    display: grid;
+    gap: 12px;
+  }
+  .about__lead {
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    max-width: 62ch;
+  }
+  .about__section {
+    display: grid;
+    gap: 16px;
+  }
+  .about__section h2 {
+    font-size: 24px;
+  }
+  .about__section p {
+    max-width: 62ch;
+  }
+  .about__states {
+    margin: 0;
+    display: grid;
+    gap: 12px;
+  }
+  .about__states div {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .about__states dt {
+    font-weight: 600;
+  }
+  .about__states dd {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+  .about__steps {
+    margin: 0;
+    padding-left: 22px;
+    display: grid;
+    gap: 10px;
+    color: var(--ink-soft);
+    max-width: 62ch;
+  }
+  .about__steps strong {
+    color: var(--ink);
+  }
+  .about__contact {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    font-weight: 600;
+  }
+  .about__contact a {
+    color: var(--red);
+  }
+  @media (max-width: 599px) {
+    .about__states div {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+  }
+</style>

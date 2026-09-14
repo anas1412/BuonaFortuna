@@ -1,130 +1,27 @@
-# BuonaFortuna 🛍️
+# BuonaFortuna
 
-Une marketplace multi-vendeurs pour les vêtements de seconde main. Interface entièrement en français, thème clair, palette "coccinelle" rouge & noir.
+Friperie en ligne pour la Tunisie. Pièces uniques, paiement à la livraison.
+Astro (server-rendered) + Convex, deployed on Vercel. See `PLAN.md` for scope, design and progress.
 
-## Fonctionnalités
+## Run locally
 
-- **Accueil** — bannière, catégories, boutiques à la une, coups de cœur
-- **Recherche** — recherche textuelle boutiques + articles, filtres par catégorie
-- **Boutiques** — annuaire avec recherche, filtre, tri et "ouvert maintenant"
-- **Page boutique** — photo de couverture, note, onglets Articles / À propos / Avis
-- **Page article** — image, prix, taille, état, vendeur, ajouter au panier
-- **Panier** — ajout, quantité, suppression, récapitulatif prix
-- **Favoris** — sauvegardés localement, accessibles depuis le profil
-- **Notifications** — liste de notifications avec état lu/non-lu
-- **Profil** — stats, ma boutique, raccourcis favoris/notifications
-- **Paramètres** — compte, préférences, support, déconnexion
-- **Connexion / Inscription** — authentification fictive (tout email valide fonctionne)
-
-## Démarrage rapide
-
-### Prérequis
-
-- [Node.js](https://nodejs.org/) ≥ 18
-- [npm](https://www.npmjs.com/) ou [yarn](https://yarnpkg.com/)
-
-### Installation
-
-```bash
-git clone https://github.com/anas1412/BuonaFortuna.git
-cd BuonaFortuna
-npm install
+```sh
+bun install
+bunx convex dev        # terminal 1 — pushes convex/ to the dev deployment, writes .env.local
+bun run dev            # terminal 2 — http://localhost:4321
 ```
 
-### Lancer en développement
+Admin at `/admin`. Only emails in the Convex `ADMIN_EMAIL` env var can sign in or create an account.
 
-```bash
-npx expo start
+## Deploy
+
+- **Site**: push `main` → Vercel builds. Vercel needs `CONVEX_URL` (production).
+- **Backend**: `bunx convex deploy` pushes `convex/` to production. Convex changes never deploy from Vercel.
+- **Seed** (first run only): `bunx convex run --prod seed:run`
+
+## Checks
+
+```sh
+bun run build
+bunx astro check       # needs TypeScript 6.x (pinned as a dev dependency)
 ```
-
-Puis :
-- Appuyez sur **w** pour le **web** (navigateur)
-- Appuyez sur **a** pour **Android** (émulateur ou Expo Go)
-- Appuyez sur **i** pour **iOS** (simulateur ou Expo Go)
-- Scannez le **QR code** avec l'app **Expo Go** sur votre téléphone
-
-### Lancer en web uniquement
-
-```bash
-npx expo start --web
-```
-
-L'app s'ouvre sur `http://localhost:8081`.
-
-## Générer un APK Android
-
-### Option 1 : EAS Build (recommandé)
-
-Créer un token d'accès sur [expo.dev](https://expo.dev) → Account Settings → Access Tokens.
-
-Puis :
-
-```bash
-export EXPO_TOKEN=<TON_TOKEN>
-npx eas-cli@latest build --profile preview --platform android
-```
-
-Lien de téléchargement de l'APK affiché dans le terminal.
-
-Le lien de téléchargement de l'APK sera affiché dans le terminal.
-
-### Option 2 : Build local
-
-```bash
-npx expo run:android
-```
-
-Nécessite Android Studio et un SDK Android configuré.
-
-## Générer un IPA iOS
-
-```bash
-export EXPO_TOKEN=<TON_TOKEN>
-npx eas-cli@latest build --profile preview --platform ios
-```
-
-Nécessite un compte Apple Developer et EAS Build.
-
-## Structure du projet
-
-```
-app/
-  _layout.tsx                Layout racine (polices, providers)
-  index.tsx                  Redirige vers les onglets
-  (auth)/
-    login.tsx                Connexion
-    signup.tsx               Inscription
-  (tabs)/
-    index.tsx                Accueil
-    search.tsx               Recherche
-    vendors.tsx              Annuaire boutiques
-    cart.tsx                 Panier
-    profile.tsx              Profil
-  vendor/[id].tsx            Page boutique
-  product/[id].tsx           Page article
-  favorites.tsx              Liste favoris
-  notifications.tsx          Notifications
-  settings.tsx               Paramètres
-
-components/                  UI réutilisable
-constants/theme.ts           Tokens de design
-context/                     États globaux (Auth, Cart, Favorites, Search)
-data/                        Données fictives (mockData, notifications)
-```
-
-## Technologies
-
-- **Framework** : [Expo](https://expo.dev/) + [expo-router](https://docs.expo.dev/router/)
-- **Langage** : TypeScript (strict)
-- **UI** : React Native
-- **Polices** : Playfair Display (titres) + Inter (corps)
-- **Icônes** : Ionicons (@expo/vector-icons)
-- **Persistance** : AsyncStorage (favoris, panier)
-
-## Note
-
-Toutes les données sont fictives (pas de backend). L'app fonctionne immédiatement après `npm install`.
-
-## Licence
-
-MIT

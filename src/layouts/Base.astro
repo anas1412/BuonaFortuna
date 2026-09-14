@@ -1,0 +1,77 @@
+---
+/**
+ * Every public page. Owns the <head> — titles, descriptions, canonical,
+ * OpenGraph (this is what WhatsApp and Facebook read for the preview card),
+ * and any JSON-LD the page hands over.
+ */
+import '@fontsource/playfair-display/600.css';
+import '@fontsource/playfair-display/700.css';
+import '@fontsource-variable/inter/index.css';
+import '../styles/global.css';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { DEFAULT_OG_IMAGE, SHOP_NAME, SITE_URL } from '../lib/shop';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Path only, e.g. "/p/trench-beige-sandro-38". Defaults to the current path. */
+  canonicalPath?: string;
+  image?: string;
+  ogType?: 'website' | 'product' | 'article';
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  noindex?: boolean;
+  /** Hide header/footer chrome (admin shell). */
+  bare?: boolean;
+}
+
+const {
+  title,
+  description,
+  canonicalPath = Astro.url.pathname,
+  image = DEFAULT_OG_IMAGE,
+  ogType = 'website',
+  jsonLd,
+  noindex = false,
+  bare = false,
+} = Astro.props;
+
+const fullTitle = title === SHOP_NAME ? title : `${title} — ${SHOP_NAME}`;
+const canonical = new URL(canonicalPath, SITE_URL).toString();
+const ldBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta name="theme-color" content="#fffcf9" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:site_name" content={SHOP_NAME} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={image} />
+    <meta property="og:locale" content="fr_TN" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+
+    {ldBlocks.map((block) => <script is:inline type="application/ld+json" set:html={JSON.stringify(block)} />)}
+  </head>
+  <body>
+    {!bare && <Header />}
+    <main id="main">
+      <slot />
+    </main>
+    {!bare && <Footer />}
+  </body>
+</html>

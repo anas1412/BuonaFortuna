@@ -1,0 +1,294 @@
+---
+/**
+ * Home. One bold moment — the ink hero with photos bleeding off the edge —
+ * then quiet, useful sections: categories, what's new, how buying works.
+ */
+import ProductCard from '../components/ProductCard.astro';
+import Base from '../layouts/Base.astro';
+import { api, convex } from '../lib/convex';
+import { DELIVERY_FEE, SITE_URL, formatPrice } from '../lib/shop';
+
+const [categories, latest] = await Promise.all([
+  convex.query(api.categories.list, {}),
+  convex.query(api.products.latest, { limit: 8 }),
+]);
+
+// The hero strip shows real stock, not stock photos.
+const heroShots = latest.slice(0, 4).map((p) => ({ src: p.images[0]?.url, alt: p.name, href: `/p/${p.slug}` }));
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ClothingStore',
+  name: 'BuonaFortuna',
+  url: SITE_URL,
+  description: 'Friperie en ligne en Tunisie. Pièces uniques de seconde main, paiement à la livraison.',
+  areaServed: { '@type': 'Country', name: 'Tunisie' },
+  paymentAccepted: 'Cash',
+  currenciesAccepted: 'TND',
+};
+---
+
+<Base
+  title="Friperie en ligne — pièces uniques, paiement à la livraison"
+  description="BuonaFortuna, friperie en ligne en Tunisie. Vêtements, chaussures et accessoires de seconde main choisis un par un. Livraison partout en Tunisie, paiement à la réception."
+  canonicalPath="/"
+  jsonLd={jsonLd}
+>
+  <section class="hero">
+    <div class="container hero__inner">
+      <div class="hero__copy">
+        <h1 class="hero__title">Seconde main,<br />premier choix.</h1>
+        <p class="hero__lead">
+          Des vêtements chinés un par un, photographiés tels qu'ils sont, livrés chez vous.
+          Vous payez à la réception.
+        </p>
+        <div class="hero__actions">
+          <a href="/catalogue" class="btn btn--primary hero__btn">Voir le catalogue</a>
+          <a href="/a-propos#livraison" class="hero__link">Comment ça marche</a>
+        </div>
+      </div>
+      <ul class="hero__strip" aria-label="Dernières pièces">
+        {
+          heroShots.map((s, i) => (
+            <li>
+              <a href={s.href}>
+                <img src={s.src} alt={s.alt} width="300" height="375" loading={i < 2 ? 'eager' : 'lazy'} decoding="async" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="container section">
+    <div class="section__head">
+      <h2>Par catégorie</h2>
+    </div>
+    <ul class="cats">
+      {
+        categories.map((c) => (
+          <li>
+            <a href={`/c/${c.slug}`} class="cats__tile">
+              <span class="cats__name">{c.name}</span>
+              <span class="cats__arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="container section">
+    <div class="section__head">
+      <h2>Nouveautés</h2>
+      <a href="/catalogue" class="section__more">Tout le catalogue</a>
+    </div>
+    <div class="grid">
+      {latest.map((p, i) => <ProductCard product={p} eager={i < 4} />)}
+    </div>
+  </section>
+
+  <section class="container section how">
+    <div class="section__head">
+      <h2>Comment ça marche</h2>
+    </div>
+    <ol class="how__steps">
+      <li>
+        <span class="how__n">1</span>
+        <h3>Choisissez une pièce</h3>
+        <p class="muted">Chaque article est unique : taille, état et photos réelles sur sa fiche.</p>
+      </li>
+      <li>
+        <span class="how__n">2</span>
+        <h3>Commandez en une minute</h3>
+        <p class="muted">Nom, téléphone, adresse. Pas de compte à créer, pas de carte bancaire.</p>
+      </li>
+      <li>
+        <span class="how__n">3</span>
+        <h3>Payez à la livraison</h3>
+        <p class="muted">Nous vous appelons pour confirmer, puis le colis arrive. {formatPrice(DELIVERY_FEE)} de livraison, partout en Tunisie.</p>
+      </li>
+    </ol>
+  </section>
+</Base>
+
+<style>
+  /* Hero: full-bleed ink band. The photo strip overflows to the right on purpose. */
+  .hero {
+    background: var(--ink);
+    color: #fff;
+    overflow: hidden;
+  }
+  .hero__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 40px;
+    align-items: center;
+    min-height: 480px;
+    padding-block: 56px;
+  }
+  .hero__title {
+    color: #fff;
+    font-size: clamp(38px, 5vw, 56px);
+    line-height: 1.05;
+  }
+  .hero__lead {
+    margin-top: 20px;
+    max-width: 44ch;
+    font-size: 17px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.78);
+  }
+  .hero__actions {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+  }
+  .hero__btn {
+    min-height: 50px;
+    padding-inline: 26px;
+  }
+  .hero__link {
+    font-weight: 600;
+    color: #fff;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.4);
+    padding-bottom: 2px;
+  }
+  .hero__link:hover {
+    border-color: #fff;
+  }
+  .hero__strip {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    /* Bleed: the last card runs past the container's right edge. */
+    margin-right: calc(-1 * max(var(--gutter), (100vw - var(--content-max)) / 2) - 40px);
+  }
+  .hero__strip li:nth-child(even) {
+    transform: translateY(28px);
+  }
+  .hero__strip img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+  }
+
+  .section {
+    padding-top: 56px;
+  }
+  .section__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .section__more {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--red);
+  }
+
+  .cats {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .cats__tile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 64px;
+    padding: 0 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 600;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .cats__tile:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .cats__arrow {
+    color: var(--ink-faint);
+    font-family: var(--font-body);
+  }
+  .cats__tile:hover .cats__arrow {
+    color: var(--red);
+  }
+
+  .how__steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .how__steps li {
+    display: grid;
+    gap: 8px;
+    padding: 22px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+  }
+  .how__n {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .how__steps h3 {
+    font-size: 19px;
+  }
+  .how__steps p {
+    font-size: 14.5px;
+  }
+
+  @media (max-width: 899px) {
+    .hero__inner {
+      grid-template-columns: 1fr;
+      min-height: 0;
+      padding-block: 44px 36px;
+      gap: 32px;
+    }
+    .hero__strip {
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      margin-right: calc(-1 * var(--gutter));
+      overflow-x: auto;
+      padding-right: var(--gutter);
+      scrollbar-width: none;
+    }
+    .hero__strip li:nth-child(even) {
+      transform: none;
+    }
+    .cats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .how__steps {
+      grid-template-columns: 1fr;
+    }
+    .section {
+      padding-top: 44px;
+    }
+  }
+</style>
