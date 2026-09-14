@@ -17,9 +17,9 @@ type Node = {
 
 /**
  * The category tree: Département › Rayon › Type. Everything edits in place —
- * click « Renommer » and the name becomes a field; « Texte » opens the page
- * paragraph under the row; deleting asks once, inline. Nodes with no stock
- * are listed here but hidden on the site.
+ * click « Renommer » and the name becomes a field; the page description sits
+ * under each département and rayon with its own « Modifier »; deleting asks
+ * once, inline. Nodes with no stock are listed here but hidden on the site.
  */
 export default function Categories() {
   const tree = useQuery(api.categories.tree);
@@ -115,11 +115,6 @@ function Row({ node, level, actions, as }: { node: Node; level: 1 | 2 | 3; actio
       <button type="button" onClick={() => setMode('rename')}>
         Renommer
       </button>
-      {level < 3 && (
-        <button type="button" onClick={() => setMode(mode === 'intro' ? 'view' : 'intro')}>
-          Texte
-        </button>
-      )}
       {node.count === 0 && (
         <ConfirmButton
           label="Supprimer"
@@ -146,16 +141,27 @@ function Row({ node, level, actions, as }: { node: Node; level: 1 | 2 | 3; actio
       <span className="ctree__name">{node.name}</span>
     );
 
-  const introEditor = mode === 'intro' && (
-    <IntroEditor
-      initial={node.intro ?? ''}
-      onCancel={() => setMode('view')}
-      onSave={async (v) => {
-        await actions.intro(node, v);
-        setMode('view');
-      }}
-    />
-  );
+  // Départements and rayons carry the paragraph shown at the top of their page.
+  const description =
+    level < 3 &&
+    (mode === 'intro' ? (
+      <IntroEditor
+        initial={node.intro ?? ''}
+        onCancel={() => setMode('view')}
+        onSave={async (v) => {
+          await actions.intro(node, v);
+          setMode('view');
+        }}
+      />
+    ) : (
+      <div className={`ctree__desc${node.intro ? '' : ' ctree__desc--empty'}`}>
+        <span className="ctree__descLabel">Description</span>
+        <p>{node.intro || 'Aucune description pour le moment.'}</p>
+        <button type="button" className="ctree__descEdit" onClick={() => setMode('intro')}>
+          {node.intro ? 'Modifier' : 'Ajouter une description'}
+        </button>
+      </div>
+    ));
 
   const rowClass = `ctree__row ctree__row--l${level}${node.count === 0 && level === 3 ? ' is-empty' : ''}`;
 
@@ -167,7 +173,7 @@ function Row({ node, level, actions, as }: { node: Node; level: 1 | 2 | 3; actio
           <span className="ctree__n">{node.count}</span>
           {tools}
         </summary>
-        {introEditor && <div className="ctree__introWrap">{introEditor}</div>}
+        {description && <div className="ctree__introWrap">{description}</div>}
       </>
     );
   }
@@ -232,7 +238,7 @@ function IntroEditor({
   return (
     <div className="ctree__intro">
       <label className="small muted" htmlFor="intro-editor">
-        Texte d’introduction de la page — vide pour aucun
+        Description affichée en haut de la page de ce rayon — vide pour aucune
       </label>
       <textarea
         id="intro-editor"
