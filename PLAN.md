@@ -107,7 +107,7 @@ Order numbers `BF-0001` come from a `counters` table (transactional read-then-wr
 - [x] Semantic HTML: one `<h1>`, `<article>`, real `<a href>` everywhere
 - [x] `/sitemap.xml` from DB, `/robots.txt`
 - [x] Self-hosted fonts, lazy images with width/height
-- [~] Zero JS on catalogue/product pages — verify on the production build, dev injects HMR scripts
+- [x] Zero JS on catalogue/product pages — live product page has 4 `<script>`: 2 JSON-LD + gallery island runtime
 
 ## Deployment
 
@@ -125,10 +125,21 @@ Order numbers `BF-0001` come from a `counters` table (transactional read-then-wr
 - [x] 5. Catalogue + category pages (filters are links; filtered views noindex)
 - [x] 6. Home, about, 404 (returns real 404 status)
 - [x] 7. Order flow verified: 400 on bad phone, 303 → /merci, product → reserved, second order → 409. Actions enforce CSRF via Origin (curl needs `-H Origin`)
-- [~] 8. Auth + admin — code written, browser test pending. Dev allowlist has a throwaway `test@buonafortuna.dev`; remove before finishing
+- [x] 8. Auth + admin — verified in browser on dev: sign-up (allowlisted), dashboard live counts, order Nouvelle → Confirmée → Livrée (product → sold), product form edit. Test email removed from dev allowlist; a leftover `test@buonafortuna.dev` user row exists on **dev** only
 - [x] 9. Sitemap (from DB, 23 URLs on dev), robots
-- [~] 10. Convex prod `fantastic-raven-860` deployed + env + seeded ✓ · Vercel `CONVEX_URL` (production) set ✓ · commit + push pending
+- [x] 10. **Live: https://buonafortuna.vercel.app** — Convex prod `fantastic-raven-860` deployed + env + seeded · Vercel `CONVEX_URL` set · pushed `4b17482`, Vercel built in 20s. Live product page: title, canonical, og:image, JSON-LD Product/Offer/Breadcrumb, InStock/TND/UsedCondition; sitemap 23 URLs
 - [ ] 11. Phone regression at 390px
+
+## First login (you)
+
+Go to https://buonafortuna.vercel.app/admin/connexion → « Première connexion ? Créer le compte » → your allowlisted email + a password (8+ chars). Only `ADMIN_EMAIL` on the prod deployment can do this. To add staff: `bunx convex env set --prod ADMIN_EMAIL "you@x,them@y"`.
+
+## Known follow-ups (not blocking)
+
+- Contact details are empty (`CONTACT_PHONE`, `CONTACT_EMAIL`, `INSTAGRAM_HANDLE` in `src/lib/shop.ts`) — nothing renders until set.
+- Delivery fee is a constant (7 DT). Per-governorate fees would need a small table.
+- HTML responses are `max-age=0`; a short `s-maxage` on catalogue/category pages would cut function invocations once traffic exists.
+- Seed products use Unsplash photos; replace with real ones from the dashboard.
 
 ## Out of scope
 

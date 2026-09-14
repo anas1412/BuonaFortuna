@@ -148,10 +148,11 @@ textarea {
   margin-top: var(--stack, 16px);
 }
 
-/* Product grid: fills the row and wraps on its own. */
+/* Product grid: fills the row and wraps on its own.
+   180px minimum gives four columns beside the catalogue rail at 1280 and five on the home page. */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 20px 16px;
 }
 @media (max-width: 480px) {

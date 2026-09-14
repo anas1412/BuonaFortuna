@@ -144,4 +144,16 @@ const links = [
       grid-column: 1 / -1;
     }
   }
+
+  /* Narrow phones: the three links don't fit beside the wordmark — give them a row. */
+  @media (max-width: 480px) {
+    .header__inner {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .header__nav {
+      justify-self: start;
+      gap: 18px;
+    }
+  }
 </style>
