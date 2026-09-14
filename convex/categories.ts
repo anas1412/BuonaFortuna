@@ -127,20 +127,42 @@ export const update = mutation({
   },
 });
 
+/**
+ * Delete a category. With `cascade`, its whole subtree goes too — but only if
+ * no product anywhere beneath (sold ones included) still points at it, since
+ * a sold piece's page keeps linking its category.
+ */
 export const remove = mutation({
-  args: { id: v.id('categories') },
-  handler: async (ctx, { id }) => {
+  args: { id: v.id('categories'), cascade: v.optional(v.boolean()) },
+  handler: async (ctx, { id, cascade = false }) => {
     await requireAdmin(ctx);
-    const child = await ctx.db
-      .query('categories')
-      .withIndex('by_parent', (q) => q.eq('parentId', id))
-      .first();
-    if (child) throw new ConvexError('Supprimez d’abord les sous-catégories.');
-    const product = await ctx.db
-      .query('products')
-      .withIndex('by_category', (q) => q.eq('categoryId', id))
-      .first();
-    if (product) throw new ConvexError('Des articles sont encore rangés ici. Déplacez-les d’abord.');
-    await ctx.db.delete(id);
+    const node = await ctx.db.get(id);
+    if (!node) throw new ConvexError('Catégorie introuvable.');
+
+    const all = await ctx.db.query('categories').collect();
+    const subtree = all.filter((c) => isUnder(c.path, node.path));
+    const descendants = subtree.filter((c) => c._id !== id);
+
+    if (descendants.length && !cascade) {
+      throw new ConvexError('Cette catégorie contient des sous-catégories.');
+    }
+
+    const ids = new Set(subtree.map((c) => c._id));
+    const products = await ctx.db.query('products').collect();
+    const inside = products.filter((p) => ids.has(p.categoryId));
+    if (inside.length) {
+      const sold = inside.filter((p) => p.status === 'sold').length;
+      throw new ConvexError(
+        `${inside.length} article${inside.length > 1 ? 's' : ''} ${inside.length > 1 ? 'sont rangés' : 'est rangé'} ici` +
+          (sold ? ` (dont ${sold} vendu${sold > 1 ? 's' : ''}, dont la page reste en ligne)` : '') +
+          '. Déplacez-les d’abord.',
+      );
+    }
+
+    // Deepest first, so no row is ever left pointing at a missing parent.
+    for (const c of [...subtree].sort((a, b) => b.level - a.level)) {
+      await ctx.db.delete(c._id);
+    }
+    return subtree.length;
   },
 });

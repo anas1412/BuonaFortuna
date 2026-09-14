@@ -2,7 +2,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
-import ConfirmButton from '../ConfirmButton';
+import Modal from '../Modal';
 import { errorMessage } from '../util';
 
 type Node = {
@@ -18,8 +18,9 @@ type Node = {
 /**
  * The category tree: Département › Rayon › Type. Everything edits in place —
  * click « Renommer » and the name becomes a field; the page description sits
- * under each département and rayon with its own « Modifier »; deleting asks
- * once, inline. Nodes with no stock are listed here but hidden on the site.
+ * under each département and rayon with its own « Modifier ». Every row has
+ * « Supprimer »: a modal explains what would go, or why it can't yet.
+ * Nodes with no stock are listed here but hidden on the site.
  */
 export default function Categories() {
   const tree = useQuery(api.categories.tree);
@@ -27,6 +28,8 @@ export default function Categories() {
   const update = useMutation(api.categories.update);
   const remove = useMutation(api.categories.remove);
   const [error, setError] = useState<string | null>(null);
+  const [toDelete, setToDelete] = useState<Node | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   if (!tree) return <div className="loading">Chargement…</div>;
 
@@ -46,7 +49,16 @@ export default function Categories() {
     add: (parentId: Id<'categories'> | undefined, name: string) => run(() => create({ name, parentId })),
     rename: (node: Node, name: string) => run(() => update({ id: node._id, name })),
     intro: (node: Node, intro: string) => run(() => update({ id: node._id, intro })),
-    remove: (node: Node) => run(() => remove({ id: node._id })),
+    askRemove: (node: Node) => setToDelete(node),
+  };
+
+  const descendantsOf = (node: Node) => tree.filter((c) => c.path.startsWith(node.path + '/'));
+  const confirmRemove = async (cascade: boolean) => {
+    if (!toDelete) return;
+    setDeleting(true);
+    await run(() => remove({ id: toDelete._id, cascade }));
+    setDeleting(false);
+    setToDelete(null);
   };
 
   const departments = childrenOf(undefined);
@@ -70,11 +82,11 @@ export default function Categories() {
       <div className="ctree">
         {departments.map((d) => (
           <details key={d._id} className="ctree__dept" open={d.count > 0}>
-            <Row node={d} level={1} actions={actions} as="summary" hasChildren={childrenOf(d._id).length > 0} />
+            <Row node={d} level={1} actions={actions} as="summary" />
             <div className="ctree__children">
               {childrenOf(d._id).map((r) => (
                 <details key={r._id} className="ctree__rayon" open={r.count > 0}>
-                  <Row node={r} level={2} actions={actions} as="summary" hasChildren={childrenOf(r._id).length > 0} />
+                  <Row node={r} level={2} actions={actions} as="summary" />
                   <ul className="ctree__leaves">
                     {childrenOf(r._id).map((t) => (
                       <Row key={t._id} node={t} level={3} actions={actions} as="li" />
@@ -91,30 +103,108 @@ export default function Categories() {
         ))}
         <AddForm placeholder="Nouveau département…" onAdd={(name) => actions.add(undefined, name)} />
       </div>
+
+      {toDelete && (
+        <DeleteModal
+          node={toDelete}
+          descendants={descendantsOf(toDelete)}
+          busy={deleting}
+          onClose={() => setToDelete(null)}
+          onConfirm={confirmRemove}
+        />
+      )}
     </>
+  );
+}
+
+const LEVEL_LABEL = { 1: 'département', 2: 'rayon', 3: 'type' } as const;
+
+/** What deleting this node means — and whether it is possible right now. */
+function DeleteModal({
+  node,
+  descendants,
+  busy,
+  onClose,
+  onConfirm,
+}: {
+  node: Node;
+  descendants: Node[];
+  busy: boolean;
+  onClose: () => void;
+  onConfirm: (cascade: boolean) => void;
+}) {
+  const kind = LEVEL_LABEL[node.level as 1 | 2 | 3];
+  const n = descendants.length;
+  const blocked = node.count > 0;
+  const cancel = (
+    <button type="button" className="btn btn--ghost" onClick={onClose} disabled={busy}>
+      {blocked ? 'Fermer' : 'Annuler'}
+    </button>
+  );
+
+  if (blocked) {
+    return (
+      <Modal open title={`Impossible de supprimer « ${node.name} »`} onClose={onClose} actions={cancel}>
+        <p>
+          <strong>{node.count}</strong> article{node.count > 1 ? 's' : ''} en vente {node.count > 1 ? 'sont rangés' : 'est rangé'} dans ce {kind}
+          {n > 0 ? ' ou ses sous-catégories' : ''}.
+        </p>
+        <p className="muted">Déplacez-les vers une autre catégorie depuis leur fiche, puis revenez ici.</p>
+      </Modal>
+    );
+  }
+
+  if (n > 0) {
+    return (
+      <Modal
+        open
+        title={`Supprimer « ${node.name} » ?`}
+        onClose={onClose}
+        actions={
+          <>
+            {cancel}
+            <button type="button" className="btn btn--primary modal__danger" disabled={busy} onClick={() => onConfirm(true)}>
+              {busy ? 'Suppression…' : `Supprimer le ${kind} et ses ${n} sous-catégories`}
+            </button>
+          </>
+        }
+      >
+        <p>
+          Ce {kind} ne contient aucun article, mais <strong>{n}</strong> sous-catégorie{n > 1 ? 's' : ''}, toutes vides.
+        </p>
+        <p className="muted">Tout sera supprimé d’un coup. Définitif — mais rien n’est en vente ici, donc rien à perdre.</p>
+      </Modal>
+    );
+  }
+
+  return (
+    <Modal
+      open
+      title={`Supprimer « ${node.name} » ?`}
+      onClose={onClose}
+      actions={
+        <>
+          {cancel}
+          <button type="button" className="btn btn--primary modal__danger" disabled={busy} onClick={() => onConfirm(false)}>
+            {busy ? 'Suppression…' : 'Supprimer'}
+          </button>
+        </>
+      }
+    >
+      <p>Ce {kind} est vide. Il disparaîtra du site et du sélecteur de la fiche article.</p>
+      <p className="muted">Définitif. Vous pourrez le recréer si besoin.</p>
+    </Modal>
   );
 }
 
 type Actions = {
   rename: (node: Node, name: string) => Promise<void>;
   intro: (node: Node, intro: string) => Promise<void>;
-  remove: (node: Node) => Promise<void>;
+  askRemove: (node: Node) => void;
 };
 
 /** One line of the tree, with its in-place editors. */
-function Row({
-  node,
-  level,
-  actions,
-  as,
-  hasChildren = false,
-}: {
-  node: Node;
-  level: 1 | 2 | 3;
-  actions: Actions;
-  as: 'summary' | 'li';
-  hasChildren?: boolean;
-}) {
+function Row({ node, level, actions, as }: { node: Node; level: 1 | 2 | 3; actions: Actions; as: 'summary' | 'li' }) {
   const [mode, setMode] = useState<'view' | 'rename' | 'intro'>('view');
   const stop = (e: React.SyntheticEvent) => {
     // Inside a <summary>, clicks and keys would toggle the <details>.
@@ -127,15 +217,9 @@ function Row({
       <button type="button" onClick={() => setMode('rename')}>
         Renommer
       </button>
-      {/* Only an empty shelf can go: nothing in stock beneath it, and no sub-categories. */}
-      {node.count === 0 && !hasChildren && (
-        <ConfirmButton
-          label="Supprimer"
-          confirmLabel="Oui, supprimer"
-          className="ctree__delete"
-          onConfirm={() => actions.remove(node)}
-        />
-      )}
+      <button type="button" className="ctree__delete" onClick={() => actions.askRemove(node)}>
+        Supprimer
+      </button>
     </span>
   );
 
