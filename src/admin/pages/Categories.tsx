@@ -164,7 +164,7 @@ function DeleteModal({
           <>
             {cancel}
             <button type="button" className="btn btn--primary modal__danger" disabled={busy} onClick={() => onConfirm(true)}>
-              {busy ? 'Suppression…' : `Supprimer le ${kind} et ses ${n} sous-catégories`}
+              {busy ? 'Suppression…' : `Supprimer le ${kind} et ${n > 1 ? `ses ${n} sous-catégories` : 'sa sous-catégorie'}`}
             </button>
           </>
         }
