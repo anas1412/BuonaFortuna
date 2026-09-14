@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from 'convex/react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
+import ConfirmButton from '../ConfirmButton';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { CONDITIONS, PRODUCT_STATUS_LABEL, isSecondHand, type Condition, type ProductStatus } from '../../lib/shop';
@@ -157,7 +158,6 @@ export default function ProductForm() {
   };
 
   async function onDelete() {
-    if (!window.confirm('Supprimer définitivement cet article et ses photos ?')) return;
     setBusy(true);
     try {
       await remove({ id: id as Id<'products'> });
@@ -282,9 +282,15 @@ export default function ProductForm() {
               Annuler
             </Link>
             {isEdit && (
-              <button type="button" className="btn btn--danger btn--sm" style={{ marginLeft: 'auto' }} disabled={busy} onClick={onDelete}>
-                Supprimer
-              </button>
+              <span style={{ marginLeft: 'auto' }}>
+                <ConfirmButton
+                  label="Supprimer l'article"
+                  confirmLabel="Oui, supprimer"
+                  hint="Définitif, photos comprises."
+                  disabled={busy}
+                  onConfirm={onDelete}
+                />
+              </span>
             )}
           </div>
         </div>

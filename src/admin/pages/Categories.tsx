@@ -1,7 +1,8 @@
 import { useMutation, useQuery } from 'convex/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
+import ConfirmButton from '../ConfirmButton';
 import { errorMessage } from '../util';
 
 type Node = {
@@ -15,14 +16,15 @@ type Node = {
 };
 
 /**
- * The category tree: Département › Rayon › Type. Add a node under any parent
- * (three levels max), rename in place, delete when empty. Nodes with no stock
- * are shown here but hidden on the site.
+ * The category tree: Département › Rayon › Type. Everything edits in place —
+ * click « Renommer » and the name becomes a field; « Texte » opens the page
+ * paragraph under the row; deleting asks once, inline. Nodes with no stock
+ * are listed here but hidden on the site.
  */
 export default function Categories() {
   const tree = useQuery(api.categories.tree);
   const create = useMutation(api.categories.create);
-  const rename = useMutation(api.categories.update);
+  const update = useMutation(api.categories.update);
   const remove = useMutation(api.categories.remove);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,43 +33,21 @@ export default function Categories() {
   const childrenOf = (id: Id<'categories'> | undefined) =>
     tree.filter((c) => c.parentId === id).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
 
-  async function onAdd(parentId: Id<'categories'> | undefined, name: string) {
+  const run = async (fn: () => Promise<unknown>) => {
     setError(null);
     try {
-      await create({ name, parentId });
+      await fn();
     } catch (e) {
       setError(errorMessage(e));
     }
-  }
-  async function onRename(node: Node) {
-    const name = window.prompt('Nouveau nom', node.name);
-    if (!name || name.trim() === node.name) return;
-    setError(null);
-    try {
-      await rename({ id: node._id, name });
-    } catch (e) {
-      setError(errorMessage(e));
-    }
-  }
-  async function onIntro(node: Node) {
-    const intro = window.prompt('Texte d’introduction de la page (vide pour aucun)', node.intro ?? '');
-    if (intro === null) return;
-    setError(null);
-    try {
-      await rename({ id: node._id, intro });
-    } catch (e) {
-      setError(errorMessage(e));
-    }
-  }
-  async function onRemove(node: Node) {
-    if (!window.confirm(`Supprimer « ${node.name} » ?`)) return;
-    setError(null);
-    try {
-      await remove({ id: node._id });
-    } catch (e) {
-      setError(errorMessage(e));
-    }
-  }
+  };
+
+  const actions = {
+    add: (parentId: Id<'categories'> | undefined, name: string) => run(() => create({ name, parentId })),
+    rename: (node: Node, name: string) => run(() => update({ id: node._id, name })),
+    intro: (node: Node, intro: string) => run(() => update({ id: node._id, intro })),
+    remove: (node: Node) => run(() => remove({ id: node._id })),
+  };
 
   const departments = childrenOf(undefined);
   const stocked = tree.filter((c) => c.level === 3 && c.count > 0).length;
@@ -90,70 +70,190 @@ export default function Categories() {
       <div className="ctree">
         {departments.map((d) => (
           <details key={d._id} className="ctree__dept" open={d.count > 0}>
-            <summary className="ctree__row ctree__row--l1">
-              <span className="ctree__name">{d.name}</span>
-              <span className="ctree__n">{d.count}</span>
-              <RowTools node={d} onRename={onRename} onIntro={onIntro} onRemove={onRemove} />
-            </summary>
+            <Row node={d} level={1} actions={actions} as="summary" />
             <div className="ctree__children">
               {childrenOf(d._id).map((r) => (
                 <details key={r._id} className="ctree__rayon" open={r.count > 0}>
-                  <summary className="ctree__row ctree__row--l2">
-                    <span className="ctree__name">{r.name}</span>
-                    <span className="ctree__n">{r.count}</span>
-                    <RowTools node={r} onRename={onRename} onIntro={onIntro} onRemove={onRemove} />
-                  </summary>
+                  <Row node={r} level={2} actions={actions} as="summary" />
                   <ul className="ctree__leaves">
                     {childrenOf(r._id).map((t) => (
-                      <li key={t._id} className={`ctree__row ctree__row--l3${t.count ? '' : ' is-empty'}`}>
-                        <span className="ctree__name">{t.name}</span>
-                        <span className="ctree__n">{t.count}</span>
-                        <RowTools node={t} onRename={onRename} onRemove={onRemove} />
-                      </li>
+                      <Row key={t._id} node={t} level={3} actions={actions} as="li" />
                     ))}
                     <li>
-                      <AddForm placeholder="Nouveau type…" onAdd={(name) => onAdd(r._id, name)} />
+                      <AddForm placeholder="Nouveau type…" onAdd={(name) => actions.add(r._id, name)} />
                     </li>
                   </ul>
                 </details>
               ))}
-              <AddForm placeholder={`Nouveau rayon dans ${d.name}…`} onAdd={(name) => onAdd(d._id, name)} />
+              <AddForm placeholder={`Nouveau rayon dans ${d.name}…`} onAdd={(name) => actions.add(d._id, name)} />
             </div>
           </details>
         ))}
-        <AddForm placeholder="Nouveau département…" onAdd={(name) => onAdd(undefined, name)} />
+        <AddForm placeholder="Nouveau département…" onAdd={(name) => actions.add(undefined, name)} />
       </div>
     </>
   );
 }
 
-function RowTools({
-  node,
-  onRename,
-  onIntro,
-  onRemove,
-}: {
-  node: Node;
-  onRename: (n: Node) => void;
-  onIntro?: (n: Node) => void;
-  onRemove: (n: Node) => void;
-}) {
-  return (
-    <span className="ctree__tools" onClick={(e) => e.preventDefault()}>
-      <button type="button" title="Renommer" onClick={() => onRename(node)}>
+type Actions = {
+  rename: (node: Node, name: string) => Promise<void>;
+  intro: (node: Node, intro: string) => Promise<void>;
+  remove: (node: Node) => Promise<void>;
+};
+
+/** One line of the tree, with its in-place editors. */
+function Row({ node, level, actions, as }: { node: Node; level: 1 | 2 | 3; actions: Actions; as: 'summary' | 'li' }) {
+  const [mode, setMode] = useState<'view' | 'rename' | 'intro'>('view');
+  const stop = (e: React.SyntheticEvent) => {
+    // Inside a <summary>, clicks and keys would toggle the <details>.
+    e.stopPropagation();
+    if (e.type === 'click') e.preventDefault();
+  };
+
+  const tools = (
+    <span className="ctree__tools" onClick={stop}>
+      <button type="button" onClick={() => setMode('rename')}>
         Renommer
       </button>
-      {onIntro && (
-        <button type="button" title="Texte de la page" onClick={() => onIntro(node)}>
+      {level < 3 && (
+        <button type="button" onClick={() => setMode(mode === 'intro' ? 'view' : 'intro')}>
           Texte
         </button>
       )}
       {node.count === 0 && (
-        <button type="button" className="is-danger" title="Supprimer" onClick={() => onRemove(node)}>
-          Supprimer
-        </button>
+        <ConfirmButton
+          label="Supprimer"
+          confirmLabel="Oui, supprimer"
+          className="ctree__delete"
+          onConfirm={() => actions.remove(node)}
+        />
       )}
     </span>
+  );
+
+  const name =
+    mode === 'rename' ? (
+      <InlineInput
+        initial={node.name}
+        onCancel={() => setMode('view')}
+        onSave={async (v) => {
+          if (v && v !== node.name) await actions.rename(node, v);
+          setMode('view');
+        }}
+        onClick={stop}
+      />
+    ) : (
+      <span className="ctree__name">{node.name}</span>
+    );
+
+  const introEditor = mode === 'intro' && (
+    <IntroEditor
+      initial={node.intro ?? ''}
+      onCancel={() => setMode('view')}
+      onSave={async (v) => {
+        await actions.intro(node, v);
+        setMode('view');
+      }}
+    />
+  );
+
+  const rowClass = `ctree__row ctree__row--l${level}${node.count === 0 && level === 3 ? ' is-empty' : ''}`;
+
+  if (as === 'summary') {
+    return (
+      <>
+        <summary className={rowClass}>
+          {name}
+          <span className="ctree__n">{node.count}</span>
+          {tools}
+        </summary>
+        {introEditor && <div className="ctree__introWrap">{introEditor}</div>}
+      </>
+    );
+  }
+  return (
+    <li className={rowClass}>
+      {name}
+      <span className="ctree__n">{node.count}</span>
+      {tools}
+    </li>
+  );
+}
+
+/** Text field that replaces a label: Enter saves, Escape cancels, leaving saves. */
+function InlineInput({
+  initial,
+  onSave,
+  onCancel,
+  onClick,
+}: {
+  initial: string;
+  onSave: (v: string) => void | Promise<void>;
+  onCancel: () => void;
+  onClick?: (e: React.SyntheticEvent) => void;
+}) {
+  const [v, setV] = useState(initial);
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    ref.current?.focus();
+    ref.current?.select();
+  }, []);
+  return (
+    <input
+      ref={ref}
+      className="input ctree__inline"
+      value={v}
+      onChange={(e) => setV(e.target.value)}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        e.stopPropagation();
+        if (e.key === 'Enter') void onSave(v.trim());
+        if (e.key === 'Escape') onCancel();
+      }}
+      onBlur={() => void onSave(v.trim())}
+      aria-label="Nouveau nom"
+    />
+  );
+}
+
+/** The paragraph shown at the top of a department or rayon page. */
+function IntroEditor({
+  initial,
+  onSave,
+  onCancel,
+}: {
+  initial: string;
+  onSave: (v: string) => void | Promise<void>;
+  onCancel: () => void;
+}) {
+  const [v, setV] = useState(initial);
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => ref.current?.focus(), []);
+  return (
+    <div className="ctree__intro">
+      <label className="small muted" htmlFor="intro-editor">
+        Texte d’introduction de la page — vide pour aucun
+      </label>
+      <textarea
+        id="intro-editor"
+        ref={ref}
+        className="input"
+        rows={3}
+        value={v}
+        onChange={(e) => setV(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onCancel();
+        }}
+      />
+      <div className="aform__actions">
+        <button type="button" className="btn btn--primary btn--sm" onClick={() => void onSave(v.trim())}>
+          Enregistrer
+        </button>
+        <button type="button" className="btn btn--ghost btn--sm" onClick={onCancel}>
+          Annuler
+        </button>
+      </div>
+    </div>
   );
 }
 

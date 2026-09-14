@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from 'convex/react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
+import ConfirmButton from '../ConfirmButton';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { ORDER_STATUS_LABEL, formatPrice, whatsappLink, type OrderStatus } from '../../lib/shop';
@@ -23,8 +24,7 @@ export default function OrderDetail() {
     `Bonjour ${order.customer.name.split(' ')[0]}, c'est BuonaFortuna au sujet de votre commande ${order.number} (${item?.name}).`,
   );
 
-  async function move(status: OrderStatus, confirmText?: string) {
-    if (confirmText && !window.confirm(confirmText)) return;
+  async function move(status: OrderStatus) {
     setError(null);
     setBusy(true);
     try {
@@ -136,14 +136,14 @@ export default function OrderDetail() {
             </button>
           )}
           {(order.status === 'new' || order.status === 'confirmed') && (
-            <button
-              type="button"
+            <ConfirmButton
+              label="Annuler la commande"
+              confirmLabel="Oui, annuler"
+              hint="L'article redevient disponible à la vente."
               className="btn btn--danger"
               disabled={busy}
-              onClick={() => move('cancelled', "Annuler cette commande ? L'article redevient disponible à la vente.")}
-            >
-              Annuler la commande
-            </button>
+              onConfirm={() => move('cancelled')}
+            />
           )}
           {order.status === 'delivered' && <p className="muted small">Terminée. L'article est marqué vendu.</p>}
           {order.status === 'cancelled' && (

@@ -594,3 +594,70 @@ summary.ctree__row::-webkit-details-marker {
     opacity: 1;
   }
 }
+
+/* ---- inline confirm + inline editors ---------------------------------- */
+
+.confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.confirm__hint {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.confirm__yes {
+  background: var(--red-deep);
+}
+.ctree__delete {
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.ctree__delete:hover {
+  background: var(--red-softer);
+  color: var(--red-deep);
+}
+.ctree__tools .confirm .btn {
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+.ctree__inline {
+  min-height: 34px;
+  padding: 4px 10px;
+  max-width: 320px;
+  font-size: 14px;
+}
+.ctree__row--l1 .ctree__inline {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+.ctree__row--l2 .ctree__inline {
+  font-weight: 600;
+}
+.ctree__introWrap {
+  padding: 0 16px 12px;
+}
+.ctree__rayon .ctree__introWrap {
+  padding: 0 14px 12px;
+}
+.ctree__intro {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  max-width: 640px;
+}
+.ctree__intro .input {
+  min-height: 0;
+}

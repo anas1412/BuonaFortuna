@@ -97,6 +97,8 @@ Order numbers `BF-0001` come from a `counters` table (transactional read-then-wr
 | `/admin/commandes` | Tabs by status |
 | `/admin/commandes/:id` | Customer, `tel:` + WhatsApp links, item, status buttons |
 
+No native `prompt`/`confirm`/`alert` anywhere in the admin: renames and page texts edit in place (`Categories.tsx`), destructive actions use the inline two-step `ConfirmButton` (arms, then « Oui, … / Annuler », auto-resets after 5 s).
+
 ## SEO checklist
 
 - [x] Per-page `<title>` and meta description
