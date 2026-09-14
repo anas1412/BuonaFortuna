@@ -38,15 +38,15 @@ const wa = CONTACT_PHONE ? whatsappLink(CONTACT_PHONE, `Bonjour, à propos de ma
         </div>
       )}
       <ol class="thanks__steps">
-        <li><strong>Appel de confirmation</strong> — sous 24 h ouvrées, sur le numéro indiqué.</li>
+        <li><strong>Nous vous appelons</strong> sous 24 h ouvrées, sur le numéro que vous venez de donner, pour confirmer.</li>
         <li><strong>Expédition</strong> — la pièce est réservée pour vous dès maintenant.</li>
         <li><strong>Livraison et paiement</strong> — comptez 2 à 5 jours selon la région.</li>
       </ol>
     </div>
 
     <p class="thanks__hint muted">
-      Gardez le numéro <strong>{order.number}</strong> : c'est celui que nous utiliserons au téléphone.
-      {wa && <> Une question ? <a href={wa} rel="noopener">Écrivez-nous sur WhatsApp</a>.</>}
+      Vous n'avez rien d'autre à faire : attendez notre appel.
+      {wa && <> Une question avant ? <a href={wa} rel="noopener">Écrivez-nous sur WhatsApp</a>, en indiquant {order.number}.</>}
     </p>
 
     <a href="/catalogue" class="btn btn--outline">Continuer à chiner</a>
