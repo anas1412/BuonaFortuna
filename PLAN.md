@@ -128,7 +128,7 @@ Order numbers `BF-0001` come from a `counters` table (transactional read-then-wr
 - [x] 8. Auth + admin — verified in browser on dev: sign-up (allowlisted), dashboard live counts, order Nouvelle → Confirmée → Livrée (product → sold), product form edit. Test email removed from dev allowlist; a leftover `test@buonafortuna.dev` user row exists on **dev** only
 - [x] 9. Sitemap (from DB, 23 URLs on dev), robots
 - [x] 10. **Live: https://buonafortuna.vercel.app** — Convex prod `fantastic-raven-860` deployed + env + seeded · Vercel `CONVEX_URL` set · pushed `4b17482`, Vercel built in 20s. Live product page: title, canonical, og:image, JSON-LD Product/Offer/Breadcrumb, InStock/TND/UsedCondition; sitemap 23 URLs
-- [ ] 11. Phone regression at 390px
+- [x] 11. Layout QA on the live site at 390 and 1280 (measured in-page): no horizontal overflow anywhere; nav on its own row under 480px; catalogue rail collapses to `<details>` on phones and shows 4 columns beside it on desktop; product page two columns ≥900px; order summary above the form on phones
 
 ## First login (you)
 
