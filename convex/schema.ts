@@ -79,8 +79,6 @@ export default defineSchema({
     description: v.string(),
     images: v.array(productImage),
     status: productStatus,
-    // One merchandising label: "Coup de cœur", "Vintage", "Meilleure vente", "Dernière pièce"…
-    tag: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index('by_slug', ['slug'])

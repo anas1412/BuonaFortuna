@@ -2,14 +2,14 @@
 import Base from '../../layouts/Base.astro';
 import { COLLECTIONS } from '../../lib/collections';
 
-const priced = COLLECTIONS.filter((c) => c.filter.maxPrice !== undefined);
-const discounted = COLLECTIONS.filter((c) => c.filter.minDiscount !== undefined || c.filter.onSale);
-const curated = COLLECTIONS.filter((c) => c.filter.tag || (!c.filter.maxPrice && !c.filter.minDiscount && !c.filter.onSale));
+const priced = COLLECTIONS.filter((c) => c.group === 'budget');
+const discounted = COLLECTIONS.filter((c) => c.group === 'remise');
+const fresh = COLLECTIONS.filter((c) => c.group === 'nouveau');
 ---
 
 <Base
   title="Bonnes affaires"
-  description="Promotions, pièces à moins de 30, 50 ou 100 DT, remises de 20 à 50 % et plus, nouveautés : les bonnes affaires BuonaFortuna, livrées partout en Tunisie."
+  description="Nouveautés, promotions, pièces à moins de 30, 50 ou 100 DT, remises de 20 à 50 % et plus : les bonnes affaires BuonaFortuna, mises à jour automatiquement avec le stock."
   canonicalPath="/bonnes-affaires"
 >
   <section class="container page">
@@ -28,8 +28,8 @@ const curated = COLLECTIONS.filter((c) => c.filter.tag || (!c.filter.maxPrice &&
         <ul class="deals">{discounted.map((c) => <li><a href={`/bonnes-affaires/${c.slug}`} class="deal"><span class="deal__t">{c.title}</span><span class="deal__i">{c.intro}</span></a></li>)}</ul>
       </section>
       <section>
-        <h2>Sélections</h2>
-        <ul class="deals">{curated.map((c) => <li><a href={`/bonnes-affaires/${c.slug}`} class="deal"><span class="deal__t">{c.title}</span><span class="deal__i">{c.intro}</span></a></li>)}</ul>
+        <h2>Nouveautés</h2>
+        <ul class="deals">{fresh.map((c) => <li><a href={`/bonnes-affaires/${c.slug}`} class="deal"><span class="deal__t">{c.title}</span><span class="deal__i">{c.intro}</span></a></li>)}</ul>
       </section>
     </div>
   </section>

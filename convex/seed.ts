@@ -2,7 +2,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import { internalMutation, type MutationCtx } from './_generated/server';
 import { slugify } from './lib';
 import { seedProducts } from './seedData';
-import { seedProductPaths, seedTree, seedVintageSlugs, type SeedNode } from './seedTree';
+import { seedProductPaths, seedTree, type SeedNode } from './seedTree';
 
 /**
  * Walk the tree and make sure every node exists. Idempotent — matching is by
@@ -69,7 +69,6 @@ export const run = internalMutation({
         description: p.description,
         images: p.images.map((url) => ({ url })),
         status: 'available',
-        tag: seedVintageSlugs.includes(p.slug) ? 'Vintage' : p.tag,
         createdAt: now - i++ * 3_600_000,
       });
     }
@@ -98,10 +97,7 @@ export const migrateCategoriesV2 = internalMutation({
         console.warn(`no target leaf for ${p.slug}; left as is`);
         continue;
       }
-      await ctx.db.patch(p._id, {
-        categoryId: target,
-        tag: seedVintageSlugs.includes(p.slug) ? 'Vintage' : p.tag,
-      });
+      await ctx.db.patch(p._id, { categoryId: target });
       moved++;
     }
 

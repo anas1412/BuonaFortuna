@@ -49,7 +49,6 @@ export const catalogue = query({
     maxPrice: v.optional(v.number()),
     minDiscount: v.optional(v.number()),
     onSale: v.optional(v.boolean()),
-    tag: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const tree = await loadTree(ctx);
@@ -81,7 +80,6 @@ export const catalogue = query({
       if (args.maxPrice !== undefined && p.price > args.maxPrice) return false;
       if (args.minDiscount !== undefined && discountOf(p) < args.minDiscount) return false;
       if (args.onSale && !(p.compareAtPrice && p.compareAtPrice > p.price)) return false;
-      if (args.tag && p.tag !== args.tag) return false;
       if (!q) return true;
       return (
         p.name.toLowerCase().includes(q) ||
@@ -203,7 +201,6 @@ const productFields = {
   description: v.string(),
   images: v.array(productImage),
   status: productStatus,
-  tag: v.optional(v.string()),
 };
 
 /** Products are filed in leaves only; a rayon or department is not a place. */

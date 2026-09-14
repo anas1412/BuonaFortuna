@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { KNOWN_TAGS } from '../../lib/collections';
 import { CONDITIONS, PRODUCT_STATUS_LABEL, isSecondHand, type Condition, type ProductStatus } from '../../lib/shop';
 import { dinarsToMillimes, errorMessage, millimesToDinars } from '../util';
 
@@ -18,7 +17,6 @@ type Draft = {
   price: string;
   compareAtPrice: string;
   description: string;
-  tag: string;
   status: ProductStatus;
   images: Image[];
 };
@@ -32,7 +30,6 @@ const EMPTY: Draft = {
   price: '',
   compareAtPrice: '',
   description: '',
-  tag: '',
   status: 'available',
   images: [],
 };
@@ -68,7 +65,6 @@ export default function ProductForm() {
         price: millimesToDinars(existing.price),
         compareAtPrice: millimesToDinars(existing.compareAtPrice),
         description: existing.description,
-        tag: existing.tag ?? '',
         status: existing.status,
         images: existing.images,
       });
@@ -146,7 +142,6 @@ export default function ProductForm() {
       description: draft.description.trim(),
       images: draft.images,
       status: draft.status,
-      tag: draft.tag.trim() || undefined,
     };
 
     setBusy(true);
@@ -248,16 +243,6 @@ export default function ProductForm() {
                 </select>
               </div>
               <p className="small muted">Un type manque ? Ajoutez-le dans <Link to="/categories">Catégories</Link>.</p>
-            </div>
-            <div className="field">
-              <label htmlFor="tag">Étiquette <span className="muted">(facultatif)</span></label>
-              <input id="tag" className="input" list="tag-options" value={draft.tag} onChange={(e) => set('tag', e.target.value)} placeholder="Coup de cœur, Vintage, Meilleure vente…" />
-              <datalist id="tag-options">
-                {KNOWN_TAGS.map((t) => (
-                  <option key={t} value={t} />
-                ))}
-              </datalist>
-              <p className="small muted">« Meilleure vente » et « Dernière pièce » alimentent les pages Bonnes affaires du même nom.</p>
             </div>
             <div className="field">
               <label htmlFor="description">Description</label>

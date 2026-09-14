@@ -132,6 +132,3 @@ export const seedProductPaths: Record<string, string> = {
   'body-de-naissance-en-coton-bio-3-mois': 'enfants/fille/ensembles',
   'survetement-adidas-originals-l': 'homme/vetements/vetements-de-sport',
 };
-
-/** "Vintage" was a flat category; it is a style, so it becomes a tag on these. */
-export const seedVintageSlugs = ['sac-a-main-cuir-vintage-taille-unique', 'robe-cocktail-annees-60-36', 'blouson-en-cuir-motard-m'];

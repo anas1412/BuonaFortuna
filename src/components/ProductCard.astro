@@ -1,9 +1,11 @@
 ---
 /**
- * One piece in a grid. The whole card is a single link; status is shown, not
+ * One piece in a grid. The whole card is a single link. Status is shown, not
  * hidden — a reserved or sold piece still appears where it is linked from.
+ * The top-left badge is automatic: the discount when the piece has an
+ * original price, the same rule that places it in « Bonnes affaires ».
  */
-import { formatPrice } from '../lib/shop';
+import { discountPercent, formatPrice } from '../lib/shop';
 
 interface Props {
   product: {
@@ -16,7 +18,6 @@ interface Props {
     compareAtPrice?: number | null;
     images: { url: string }[];
     status: 'available' | 'reserved' | 'sold';
-    tag?: string | null;
   };
   /** First few cards above the fold load eagerly. */
   eager?: boolean;
@@ -24,6 +25,7 @@ interface Props {
 
 const { product: p, eager = false } = Astro.props;
 const cover = p.images[0]?.url ?? '';
+const discount = discountPercent(p.price, p.compareAtPrice);
 ---
 
 <article class="pc">
@@ -31,7 +33,7 @@ const cover = p.images[0]?.url ?? '';
     <div class="pc__media">
       <img
         src={cover}
-        alt={`${p.name}, ${p.brand}, taille ${p.size}`}
+        alt={`${p.name}, ${p.brand}, ${p.size}`}
         width="400"
         height="500"
         loading={eager ? 'eager' : 'lazy'}
@@ -39,11 +41,11 @@ const cover = p.images[0]?.url ?? '';
       />
       {p.status === 'reserved' && <span class="chip chip--amber pc__status">Réservé</span>}
       {p.status === 'sold' && <span class="chip chip--ink pc__status">Vendu</span>}
-      {p.status === 'available' && p.tag && <span class="chip chip--ink pc__status">{p.tag}</span>}
+      {p.status === 'available' && discount && <span class="chip chip--red pc__status">-{discount} %</span>}
       <span class="chip chip--paper pc__condition">{p.condition}</span>
     </div>
     <div class="pc__body">
-      <p class="pc__meta">{p.brand} · Taille {p.size}</p>
+      <p class="pc__meta">{p.brand} · {p.size}</p>
       <h3 class="pc__name">{p.name}</h3>
       <p class="pc__price">
         <span class="price">{formatPrice(p.price)}</span>
