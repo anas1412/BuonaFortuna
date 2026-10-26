@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import ConfirmButton from '../ConfirmButton';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { CONDITIONS, PRODUCT_STATUS_LABEL, type Condition, type ProductStatus } from '../../lib/shop';
+import { CONDITIONS, PRODUCT_STATUS_LABEL, discountPercent, type Condition, type ProductStatus } from '../../lib/shop';
 import { sizeScale } from '../../lib/sizes';
 import { Empty, Icon, Loading, PageHead } from '../ui';
 import { dinarsToMillimes, errorMessage, millimesToDinars, useIsAdmin } from '../util';
@@ -38,6 +38,16 @@ const EMPTY: Draft = {
 };
 
 /** Add and edit share one form; the route decides which. */
+/** What the shop will show, live, so nobody has to work out a percentage. */
+function discountHint(priceInput: string, compareInput: string) {
+  const price = dinarsToMillimes(priceInput);
+  const compare = compareInput.trim() ? dinarsToMillimes(compareInput) : undefined;
+  if (compare === undefined) return 'Pour une remise, indiquez l\'ancien prix : le pourcentage s\'affiche tout seul sur la boutique.';
+  if (price === null || compare === null) return 'Entrez des montants en dinars.';
+  const pct = discountPercent(price, compare);
+  return pct === null ? 'Le prix barré doit être plus élevé que le prix.' : `Remise affichée sur la boutique : −${pct} %`;
+}
+
 export default function ProductForm() {
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
@@ -143,7 +153,8 @@ export default function ProductForm() {
     const price = dinarsToMillimes(draft.price);
     const compareAt = draft.compareAtPrice.trim() ? dinarsToMillimes(draft.compareAtPrice) : undefined;
     if (price === null) return setError('Le prix doit être un nombre en dinars.');
-    if (compareAt === null) return setError("Le prix d'origine doit être un nombre en dinars.");
+    if (compareAt === null) return setError('Le prix barré doit être un nombre en dinars.');
+    if (compareAt !== undefined && compareAt <= price) return setError('Le prix barré doit être plus élevé que le prix : sinon, laissez-le vide.');
     if (!draft.categoryId) return setError('Choisissez une catégorie.');
     if (!draft.images.length) return setError('Ajoutez au moins une photo.');
 
@@ -284,10 +295,11 @@ export default function ProductForm() {
                 <input id="price" className="input" required inputMode="decimal" value={draft.price} onChange={(e) => set('price', e.target.value)} placeholder="68" />
               </div>
               <div className="field">
-                <label htmlFor="compare">Prix d'origine (DT) <span className="muted">(facultatif)</span></label>
-                <input id="compare" className="input" inputMode="decimal" value={draft.compareAtPrice} onChange={(e) => set('compareAtPrice', e.target.value)} placeholder="240" />
+                <label htmlFor="compare">Prix barré (DT) <span className="muted">(facultatif)</span></label>
+                <input id="compare" className="input" inputMode="decimal" value={draft.compareAtPrice} onChange={(e) => set('compareAtPrice', e.target.value)} placeholder="Ancien prix, si remise" aria-describedby="discount" />
               </div>
             </div>
+            <p id="discount" className="small muted">{discountHint(draft.price, draft.compareAtPrice)}</p>
             <div className="field">
               <label htmlFor="status">Statut</label>
               <select id="status" className="input" value={draft.status} onChange={(e) => set('status', e.target.value as ProductStatus)}>

@@ -246,6 +246,22 @@ User decision (2026-10-26): the Accueil page becomes a real dashboard. Only data
 - [x] UI: KPIs with deltas, chart (hover tooltip) + « Voir les chiffres », stock, rayons, à traiter, recent orders; empty states, no fake data. Tested end to end on dev with test order BF-0002 (new → confirmed → delivered); dev product « Body de naissance » is now sold
 - [x] Verified phone + desktop; Convex prod deployed, then pushed 845c6ef (2026-10-26); live bundle checked, shop pages 200
 
+## v2.5 — discounts and batch actions
+
+**Discount model (kept: it's the common one, Shopify's « compare-at price »).** The admin enters the selling price and, only for a real markdown, the **prix barré**. The badge is `round((barré − prix) / barré × 100)`. Never typed by hand, so card, product page and « Promotions » always agree.
+- Form: rename « Prix d'origine » → « Prix barré (avant remise) », live « Remise affichée : −30 % » preview, refuse a barré ≤ prix (was silently ignored).
+- Not a « prix neuf » field: showing a retail price as a discount on every second-hand piece would make every piece look « en promo » and is misleading.
+
+**Batch actions on Articles.** Tick rows (or all shown), then one bar:
+- Statut → En vente / Réservé / Vendu (staff)
+- Remise → −10 / −20 / −30 / −50 %, or « Retirer la remise » (staff). Computed from the barré when there is one, so −30 twice is still −30, not −51. Never raises a price: a piece already cheaper than the % asked is left as is and the screen says how many. Prices round to the half-dinar, so the badge matches the % chosen (whole dinars made a 15 DT piece at −30 % read −27 %).
+- Supprimer (admins only, two-step), photos included.
+
+- [x] Form: prix barré label, live %, validation (client and server)
+- [x] Backend: `products.bulkStatus`, `bulkDiscount` (maths in `applyDiscount`, covered by `bun run check`), `bulkRemove`
+- [ ] Articles: checkboxes + batch bar (desktop + phone)
+- [ ] Verified on dev; deployed (Convex first)
+
 ## Out of scope
 
 Cart · online payment · buyer accounts · **multivendor** · Arabic · reviews · custom domain · automatic best-sellers ranking

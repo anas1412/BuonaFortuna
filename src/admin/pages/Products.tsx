@@ -1,9 +1,14 @@
-import { useQuery } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { api } from '../../../convex/_generated/api';
+import type { Id } from '../../../convex/_generated/dataModel';
 import { PRODUCT_STATUS_LABEL, formatPrice, type ProductStatus } from '../../lib/shop';
+import ConfirmButton from '../ConfirmButton';
 import { Empty, Icon, Loading, PageHead, Tabs } from '../ui';
+import { errorMessage, useIsAdmin } from '../util';
+
+const DISCOUNTS = [10, 20, 30, 50];
 
 type Tab = ProductStatus | 'all';
 
@@ -18,11 +23,43 @@ export default function Products() {
   const [tab, setTab] = useState<Tab>('all');
   const [q, setQ] = useState('');
   const products = useQuery(api.products.adminList, tab === 'all' ? {} : { status: tab });
+  const isAdmin = useIsAdmin();
+  const bulkStatus = useMutation(api.products.bulkStatus);
+  const bulkDiscount = useMutation(api.products.bulkDiscount);
+  const bulkRemove = useMutation(api.products.bulkRemove);
+  const [picked, setPicked] = useState<Set<Id<'products'>>>(new Set());
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const needle = q.trim().toLowerCase();
   const shown = products?.filter(
     (p) => !needle || p.name.toLowerCase().includes(needle) || p.brand.toLowerCase().includes(needle),
   );
+  // Only what's on screen can be acted on: changing tab or search narrows the selection.
+  const selected = (shown ?? []).filter((p) => picked.has(p._id)).map((p) => p._id);
+  const allPicked = !!shown?.length && selected.length === shown.length;
+  const toggle = (id: Id<'products'>) =>
+    setPicked((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+
+  async function run(fn: () => Promise<unknown>) {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await fn();
+      setPicked(new Set());
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <>
@@ -43,6 +80,18 @@ export default function Products() {
           aria-label="Rechercher un article"
         />
       </div>
+
+      {error && (
+        <p className="aform__error" role="alert">
+          {error}
+        </p>
+      )}
+
+      {notice && (
+        <p className="notice" role="status">
+          {notice}
+        </p>
+      )}
 
       {!shown ? (
         <Loading />
@@ -65,7 +114,15 @@ export default function Products() {
         <table className="tbl">
           <thead>
             <tr>
-              <th className="tbl__media">Photo</th>
+              <th className="tbl__media">
+                <input
+                  type="checkbox"
+                  className="pick"
+                  checked={allPicked}
+                  onChange={() => setPicked(allPicked ? new Set() : new Set(shown.map((p) => p._id)))}
+                  aria-label="Tout sélectionner"
+                />
+              </th>
               <th>Article</th>
               <th className="hide-sm">Catégorie</th>
               <th className="hide-sm">Taille</th>
@@ -75,9 +132,12 @@ export default function Products() {
           </thead>
           <tbody>
             {shown.map((p) => (
-              <tr key={p._id}>
+              <tr key={p._id} className={picked.has(p._id) ? 'is-picked' : undefined}>
                 <td className="tbl__media">
-                  <img src={p.images[0]?.url} alt="" className="tbl__thumb" />
+                  <div className="tbl__pickrow">
+                    <input type="checkbox" className="pick" checked={picked.has(p._id)} onChange={() => toggle(p._id)} aria-label={`Sélectionner ${p.name}`} />
+                    <img src={p.images[0]?.url} alt="" className="tbl__thumb" />
+                  </div>
                 </td>
                 <td>
                   <Link to={`/produits/${p._id}`} className="tbl__name tbl__link">
@@ -95,6 +155,66 @@ export default function Products() {
             ))}
           </tbody>
         </table>
+      )}
+
+      {selected.length > 0 && (
+        <div className="batch" role="region" aria-label="Actions sur la sélection">
+          <span className="batch__count">
+            {selected.length} {selected.length === 1 ? 'article' : 'articles'}
+            <button type="button" className="batch__clear" onClick={() => setPicked(new Set())}>
+              Désélectionner
+            </button>
+          </span>
+          <select
+            className="input"
+            value=""
+            disabled={busy}
+            aria-label="Changer le statut"
+            onChange={(e) => void run(() => bulkStatus({ ids: selected, status: e.target.value as ProductStatus }))}
+          >
+            <option value="" disabled>
+              Statut…
+            </option>
+            {(Object.keys(PRODUCT_STATUS_LABEL) as ProductStatus[]).map((s) => (
+              <option key={s} value={s}>
+                {PRODUCT_STATUS_LABEL[s]}
+              </option>
+            ))}
+          </select>
+          <select
+            className="input"
+            value=""
+            disabled={busy}
+            aria-label="Appliquer une remise"
+            onChange={(e) =>
+              void run(async () => {
+                const percent = e.target.value === 'none' ? null : Number(e.target.value);
+                const { unchanged } = await bulkDiscount({ ids: selected, percent });
+                if (unchanged && percent !== null)
+                  setNotice(`${unchanged} ${unchanged === 1 ? 'article était déjà moins cher' : 'articles étaient déjà moins chers'} que −${percent} % : prix inchangé.`);
+              })
+            }
+          >
+            <option value="" disabled>
+              Remise…
+            </option>
+            {DISCOUNTS.map((d) => (
+              <option key={d} value={d}>
+                −{d} %
+              </option>
+            ))}
+            <option value="none">Retirer la remise</option>
+          </select>
+          {isAdmin && (
+            <ConfirmButton
+              label="Supprimer"
+              confirmLabel={`Oui, supprimer ${selected.length}`}
+              hint="Définitif, photos comprises."
+              disabled={busy}
+              onConfirm={() => run(() => bulkRemove({ ids: selected }))}
+            />
+          )}
+        </div>
       )}
     </>
   );

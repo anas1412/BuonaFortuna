@@ -70,6 +70,20 @@ export function discountPercent(price: number, compareAtPrice?: number | null): 
   return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
 }
 
+/**
+ * A batch « Remise » on one piece. Computed from the prix barré when there is
+ * one, so −30 % twice stays −30 %; `null` ends the sale. Never raises a price:
+ * a piece already cheaper than the % asked comes back unchanged. Rounds to the
+ * half-dinar: clean prices that keep the badge true to the % chosen.
+ */
+export function applyDiscount(price: number, compareAtPrice: number | undefined, percent: number | null) {
+  const base = compareAtPrice ?? price;
+  if (percent === null) return { price: base, compareAtPrice: undefined };
+  const next = Math.max(500, Math.round((base * (1 - percent / 100)) / 500) * 500);
+  if (next >= price) return { price, compareAtPrice };
+  return { price: next, compareAtPrice: base };
+}
+
 /** Tunisian mobile/landline: 8 digits, optional +216 / 00216 prefix, spaces allowed. */
 export function normalizePhone(raw: string): string | null {
   const digits = raw.replace(/[\s.-]/g, '').replace(/^(\+|00)216/, '');

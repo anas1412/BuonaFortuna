@@ -3,6 +3,7 @@ import type { Doc } from './_generated/dataModel';
 import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
 import { isUnder, loadTree, pathAncestors, type CategoryNode } from './categories';
 import { requireAdmin, requireStaff, slugify, uniqueProductSlug } from './lib';
+import { applyDiscount } from '../src/lib/shop';
 import { condition, productImage, productStatus } from './schema';
 
 const sortKey = v.union(v.literal('recent'), v.literal('priceAsc'), v.literal('priceDesc'));
@@ -203,6 +204,13 @@ const productFields = {
   status: productStatus,
 };
 
+/** A prix barré only makes sense above the price: it's what the discount badge is computed from. */
+function assertPrices(price: number, compareAtPrice?: number) {
+  if (compareAtPrice !== undefined && compareAtPrice <= price) {
+    throw new ConvexError('Le prix barré doit être plus élevé que le prix.');
+  }
+}
+
 /** Products are filed in leaves only; a rayon or department is not a place. */
 async function assertLeaf(ctx: MutationCtx, categoryId: Doc<'categories'>['_id']) {
   const cat = await ctx.db.get(categoryId);
@@ -219,6 +227,7 @@ export const create = mutation({
   handler: async (ctx, args) => {
     await requireStaff(ctx);
     if (!args.images.length) throw new ConvexError('Ajoutez au moins une photo.');
+    assertPrices(args.price, args.compareAtPrice);
     await assertLeaf(ctx, args.categoryId);
     const slug = await uniqueProductSlug(ctx, slugify(`${args.name} ${args.size}`));
     return ctx.db.insert('products', { ...args, slug, createdAt: Date.now() });
@@ -232,6 +241,7 @@ export const update = mutation({
     const existing = await ctx.db.get(id);
     if (!existing) throw new ConvexError('Article introuvable.');
     if (!args.images.length) throw new ConvexError('Ajoutez au moins une photo.');
+    assertPrices(args.price, args.compareAtPrice);
     await assertLeaf(ctx, args.categoryId);
     // Keep the URL stable unless the name or size changed — links out there keep working.
     const renamed = existing.name !== args.name || existing.size !== args.size;
@@ -252,6 +262,49 @@ export const remove = mutation({
       if (img.storageId) await ctx.storage.delete(img.storageId);
     }
     await ctx.db.delete(id);
+  },
+});
+
+const ids = v.array(v.id('products'));
+
+/** Articles › selection › Statut. */
+export const bulkStatus = mutation({
+  args: { ids, status: productStatus },
+  handler: async (ctx, { ids, status }) => {
+    await requireStaff(ctx);
+    for (const id of ids) if (await ctx.db.get(id)) await ctx.db.patch(id, { status });
+  },
+});
+
+/** Articles › selection › Remise; the arithmetic lives in applyDiscount (checked by `bun run check`). */
+export const bulkDiscount = mutation({
+  args: { ids, percent: v.union(v.number(), v.null()) },
+  handler: async (ctx, { ids, percent }) => {
+    await requireStaff(ctx);
+    if (percent !== null && !(percent > 0 && percent < 100)) throw new ConvexError('Remise invalide.');
+    let unchanged = 0;
+    for (const id of ids) {
+      const p = await ctx.db.get(id);
+      if (!p) continue;
+      const next = applyDiscount(p.price, p.compareAtPrice, percent);
+      if (next.price === p.price && next.compareAtPrice === p.compareAtPrice) unchanged++;
+      else await ctx.db.patch(id, next);
+    }
+    return { unchanged };
+  },
+});
+
+/** Articles › selection › Supprimer. Admins only, photos included, like the single delete. */
+export const bulkRemove = mutation({
+  args: { ids },
+  handler: async (ctx, { ids }) => {
+    await requireAdmin(ctx);
+    for (const id of ids) {
+      const p = await ctx.db.get(id);
+      if (!p) continue;
+      for (const img of p.images) if (img.storageId) await ctx.storage.delete(img.storageId);
+      await ctx.db.delete(id);
+    }
   },
 });
 
