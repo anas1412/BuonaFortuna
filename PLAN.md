@@ -272,7 +272,7 @@ User decision (2026-10-26): add a draft state; gestionnaires may publish (they c
 
 - [x] Backend: status, `isListed`/`isPublic` on every public read (catalogue, counts, similar, bySlug → 404, sitemap), relaxed draft validation, publishing resets createdAt
 - [x] Admin: Publier / Enregistrer en brouillon, « Brouillons » tab, batch publish skips unfinished drafts (counted), dashboard alert
-- [ ] Verified on dev that a draft leaks nowhere; deployed (Convex first)
+- [x] Deployed 2026-10-26: Convex prod, then pushed de70d1a; live bundle has drafts, shop pages + sitemap 200. Leak test on screen skipped at user request
 
 ## Out of scope
 
