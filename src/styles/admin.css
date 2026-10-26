@@ -718,6 +718,15 @@ a.tile:hover {
   background: var(--red-soft);
   color: var(--red);
 }
+.st--draft {
+  background: transparent;
+  color: var(--ink-soft);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+.tbl__thumb--empty {
+  background: var(--cream);
+  border: 1.5px dashed var(--line-strong);
+}
 .st--cancelled {
   background: var(--line);
   color: var(--ink-soft);

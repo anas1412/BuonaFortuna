@@ -262,6 +262,18 @@ User decision (2026-10-26): the Accueil page becomes a real dashboard. Only data
 - [x] Articles: checkboxes + batch bar (desktop + phone); not yet clicked through on screen (session lost)
 - [x] Deployed 2026-10-26: Convex prod, then pushed 3f4c17e; live bundle has the batch bar, shop pages 200
 
+## v2.6 — drafts (« Brouillon »)
+
+User decision (2026-10-26): add a draft state; gestionnaires may publish (they can already edit live pieces).
+- Fourth product status `draft`, label « Brouillon ». Invisible to customers everywhere: catalogue/search/filters, category counts (menus, tiles, sitemap), « similar », home « Nouveautés », product + order pages (404), sitemap. Can't be ordered.
+- One rule in `convex/lib.ts`: `isListed` (available | reserved: shown in lists) and `isPublic` (not draft: has a page).
+- A draft can be saved unfinished: only name and rayon/type required; no photo, empty price (0) and description allowed. Publishing requires everything, checked on the server too.
+- Admin: « Enregistrer en brouillon » next to « Publier »; « Brouillons » tab in Articles; batch Statut can publish a whole drop; dashboard shows « N brouillons à terminer ».
+
+- [x] Backend: status, `isListed`/`isPublic` on every public read (catalogue, counts, similar, bySlug → 404, sitemap), relaxed draft validation, publishing resets createdAt
+- [x] Admin: Publier / Enregistrer en brouillon, « Brouillons » tab, batch publish skips unfinished drafts (counted), dashboard alert
+- [ ] Verified on dev that a draft leaks nowhere; deployed (Convex first)
+
 ## Out of scope
 
 Cart · online payment · buyer accounts · **multivendor** · Arabic · reviews · custom domain · automatic best-sellers ranking

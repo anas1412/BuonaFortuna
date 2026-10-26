@@ -37,7 +37,7 @@ export default function Dashboard() {
         </Link>
       </PageHead>
 
-      {(data.toCall > 0 || data.stuck.length > 0) && (
+      {(data.toCall > 0 || data.stuck.length > 0 || stock.drafts > 0) && (
         <section className="alerts" aria-label="À traiter">
           {data.toCall > 0 && (
             <Link to="/commandes" className="alert">
@@ -45,6 +45,15 @@ export default function Dashboard() {
               <span>
                 <strong>{data.toCall} {data.toCall === 1 ? 'commande à appeler' : 'commandes à appeler'}</strong>
                 <span className="alert__sub">Appelez pour confirmer l'adresse avant l'envoi.</span>
+              </span>
+            </Link>
+          )}
+          {stock.drafts > 0 && (
+            <Link to="/produits" className="alert">
+              <Icon name="tag" />
+              <span>
+                <strong>{stock.drafts} {stock.drafts === 1 ? 'brouillon à terminer' : 'brouillons à terminer'}</strong>
+                <span className="alert__sub">Invisibles sur la boutique tant qu'ils ne sont pas publiés (onglet « Brouillons »).</span>
               </span>
             </Link>
           )}

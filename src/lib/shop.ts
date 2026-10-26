@@ -39,13 +39,14 @@ export const CONDITIONS = ['Comme neuf', 'Très bon état', 'Bon état', 'Satisf
 export type Condition = (typeof CONDITIONS)[number];
 export const isSecondHand = (c: Condition | string) => c !== 'Neuf';
 
-export type ProductStatus = 'available' | 'reserved' | 'sold';
+export type ProductStatus = 'available' | 'reserved' | 'sold' | 'draft';
 export type OrderStatus = 'new' | 'confirmed' | 'delivered' | 'cancelled';
 
 export const PRODUCT_STATUS_LABEL: Record<ProductStatus, string> = {
   available: 'Disponible',
   reserved: 'Réservé',
   sold: 'Vendu',
+  draft: 'Brouillon',
 };
 
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {

@@ -224,6 +224,7 @@ export const dashboard = query({
       days,
       stock: {
         available: count('available'),
+        drafts: count('draft'),
         reserved: count('reserved'),
         sold: count('sold'),
         addedThisMonth: products.filter((p) => p.createdAt >= thisMonth).length,

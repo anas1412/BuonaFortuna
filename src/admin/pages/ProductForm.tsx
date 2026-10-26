@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from 'convex/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import ConfirmButton from '../ConfirmButton';
 import { api } from '../../../convex/_generated/api';
@@ -147,16 +147,25 @@ export default function ProductForm() {
     setDraft((d) => ({ ...d, images: d.images.filter((_, j) => j !== i) }));
   }
 
+  // New pieces and drafts are published or kept as drafts by their buttons; a live piece keeps its status menu.
+  const unpublished = !isEdit || existing?.status === 'draft';
+  const asDraft = useRef(false);
+
   const onSubmit: React.ComponentProps<'form'>['onSubmit'] = async (e) => {
     e.preventDefault();
     setError(null);
-    const price = dinarsToMillimes(draft.price);
+    const keepDraft = asDraft.current;
+    asDraft.current = false;
+    // A draft can be unfinished: an empty price is saved as 0 until it's published.
+    const price = keepDraft && !draft.price.trim() ? 0 : dinarsToMillimes(draft.price);
     const compareAt = draft.compareAtPrice.trim() ? dinarsToMillimes(draft.compareAtPrice) : undefined;
+    if (!draft.name.trim()) return setError("Donnez au moins un nom à l'article.");
+    if (!draft.categoryId) return setError('Choisissez le rayon et le type.');
     if (price === null) return setError('Le prix doit être un nombre en dinars.');
     if (compareAt === null) return setError('Le prix barré doit être un nombre en dinars.');
     if (compareAt !== undefined && compareAt <= price) return setError('Le prix barré doit être plus élevé que le prix : sinon, laissez-le vide.');
-    if (!draft.categoryId) return setError('Choisissez une catégorie.');
-    if (!draft.images.length) return setError('Ajoutez au moins une photo.');
+    if (!keepDraft && !draft.images.length) return setError('Ajoutez au moins une photo avant de publier.');
+    const status: ProductStatus = keepDraft ? 'draft' : unpublished ? 'available' : draft.status;
 
     const payload = {
       name: draft.name.trim(),
@@ -168,7 +177,7 @@ export default function ProductForm() {
       compareAtPrice: compareAt ?? undefined,
       description: draft.description.trim(),
       images: draft.images,
-      status: draft.status,
+      status,
     };
 
     setBusy(true);
@@ -202,7 +211,13 @@ export default function ProductForm() {
       <PageHead
         title={isEdit ? existing?.name : 'Nouvel article'}
         back={{ to: '/produits', label: 'Articles' }}
-        sub={isEdit ? undefined : 'Photos, description et prix : la pièce est en ligne dès que vous publiez.'}
+        sub={
+          !isEdit
+            ? 'Photos, description et prix : publiez quand tout est prêt, ou gardez-la en brouillon.'
+            : existing?.status === 'draft'
+              ? 'Brouillon : invisible sur la boutique tant que vous ne publiez pas.'
+              : undefined
+        }
       >
         {isEdit && existing && (
           <a href={`/p/${existing.slug}`} target="_blank" rel="noopener" className="btn btn--outline btn--sm">
@@ -300,23 +315,30 @@ export default function ProductForm() {
               </div>
             </div>
             <p id="discount" className="small muted">{discountHint(draft.price, draft.compareAtPrice)}</p>
-            <div className="field">
-              <label htmlFor="status">Statut</label>
-              <select id="status" className="input" value={draft.status} onChange={(e) => set('status', e.target.value as ProductStatus)}>
-                {(Object.keys(PRODUCT_STATUS_LABEL) as ProductStatus[]).map((s) => (
-                  <option key={s} value={s}>
-                    {PRODUCT_STATUS_LABEL[s]}
-                  </option>
-                ))}
-              </select>
-              <p className="small muted">Une commande passe l'article en « Réservé » toute seule. Changez-le à la main seulement pour corriger.</p>
-            </div>
+            {!unpublished && (
+              <div className="field">
+                <label htmlFor="status">Statut</label>
+                <select id="status" className="input" value={draft.status} onChange={(e) => set('status', e.target.value as ProductStatus)}>
+                  {(Object.keys(PRODUCT_STATUS_LABEL) as ProductStatus[]).map((s) => (
+                    <option key={s} value={s}>
+                      {PRODUCT_STATUS_LABEL[s]}
+                    </option>
+                  ))}
+                </select>
+                <p className="small muted">Une commande passe l'article en « Réservé » toute seule. « Brouillon » le retire de la boutique.</p>
+              </div>
+            )}
           </section>
 
           <div className="aform__actions">
             <button type="submit" className="btn btn--primary" disabled={busy || uploading > 0}>
-              {busy ? 'Enregistrement…' : isEdit ? 'Enregistrer' : "Publier l'article"}
+              {busy ? 'Enregistrement…' : unpublished ? 'Publier' : 'Enregistrer'}
             </button>
+            {unpublished && (
+              <button type="submit" formNoValidate className="btn btn--outline" disabled={busy || uploading > 0} onClick={() => (asDraft.current = true)}>
+                {isEdit ? 'Garder en brouillon' : 'Enregistrer en brouillon'}
+              </button>
+            )}
             <Link to="/produits" className="btn btn--ghost">
               Annuler
             </Link>

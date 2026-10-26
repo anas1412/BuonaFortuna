@@ -2,7 +2,7 @@ import { ConvexError, v } from 'convex/values';
 import type { Doc } from './_generated/dataModel';
 import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
 import { isUnder, loadTree, pathAncestors, type CategoryNode } from './categories';
-import { requireAdmin, requireStaff, slugify, uniqueProductSlug } from './lib';
+import { isListed, isPublic, requireAdmin, requireStaff, slugify, uniqueProductSlug } from './lib';
 import { applyDiscount } from '../src/lib/shop';
 import { condition, productImage, productStatus } from './schema';
 
@@ -61,7 +61,7 @@ export const catalogue = query({
       if (!category) return { products: [], category: null, sizes: [] };
     }
 
-    const all = (await ctx.db.query('products').collect()).filter((p) => p.status !== 'sold');
+    const all = (await ctx.db.query('products').collect()).filter(isListed);
     const inScope = category
       ? all.filter((p) => {
           const c = byId.get(p.categoryId);
@@ -116,7 +116,7 @@ export const bySlug = query({
       .query('products')
       .withIndex('by_slug', (q) => q.eq('slug', slug))
       .unique();
-    return p ? withCategory(ctx, p) : null;
+    return p && isPublic(p) ? withCategory(ctx, p) : null;
   },
 });
 
@@ -132,7 +132,7 @@ export const similar = query({
     const dept = selfCat?.path.split('/')[0];
 
     const onSale = (await ctx.db.query('products').collect()).filter(
-      (p) => p._id !== productId && p.status !== 'sold',
+      (p) => p._id !== productId && isListed(p),
     );
     const rank = (p: Doc<'products'>) => {
       if (p.categoryId === self.categoryId) return 0;
@@ -159,7 +159,7 @@ export const latest = query({
 export const allSlugs = query({
   args: {},
   handler: async (ctx) => {
-    const rows = await ctx.db.query('products').collect();
+    const rows = (await ctx.db.query('products').collect()).filter(isPublic);
     return rows.map((p) => ({ slug: p.slug, updatedAt: p._creationTime }));
   },
 });
@@ -204,6 +204,17 @@ const productFields = {
   status: productStatus,
 };
 
+/**
+ * A draft may be saved unfinished (no photo, no price yet); anything customers
+ * can see must be complete. Checked here, whatever the form did.
+ */
+function assertComplete(args: { status: string; images: unknown[]; price: number; description: string }) {
+  if (args.status === 'draft') return;
+  if (!args.images.length) throw new ConvexError('Ajoutez au moins une photo avant de publier.');
+  if (args.price <= 0) throw new ConvexError('Indiquez un prix avant de publier.');
+  if (!args.description.trim()) throw new ConvexError('Ajoutez une description avant de publier.');
+}
+
 /** A prix barré only makes sense above the price: it's what the discount badge is computed from. */
 function assertPrices(price: number, compareAtPrice?: number) {
   if (compareAtPrice !== undefined && compareAtPrice <= price) {
@@ -226,7 +237,7 @@ export const create = mutation({
   args: productFields,
   handler: async (ctx, args) => {
     await requireStaff(ctx);
-    if (!args.images.length) throw new ConvexError('Ajoutez au moins une photo.');
+    assertComplete(args);
     assertPrices(args.price, args.compareAtPrice);
     await assertLeaf(ctx, args.categoryId);
     const slug = await uniqueProductSlug(ctx, slugify(`${args.name} ${args.size}`));
@@ -240,7 +251,7 @@ export const update = mutation({
     await requireStaff(ctx);
     const existing = await ctx.db.get(id);
     if (!existing) throw new ConvexError('Article introuvable.');
-    if (!args.images.length) throw new ConvexError('Ajoutez au moins une photo.');
+    assertComplete(args);
     assertPrices(args.price, args.compareAtPrice);
     await assertLeaf(ctx, args.categoryId);
     // Keep the URL stable unless the name or size changed — links out there keep working.
@@ -248,7 +259,9 @@ export const update = mutation({
     const slug = renamed
       ? await uniqueProductSlug(ctx, slugify(`${args.name} ${args.size}`), id)
       : existing.slug;
-    await ctx.db.patch(id, { ...args, slug });
+    // Publishing a draft lists it as new today (Nouveautés, délai de vente).
+    const published = existing.status === 'draft' && args.status !== 'draft';
+    await ctx.db.patch(id, { ...args, slug, ...(published && { createdAt: Date.now() }) });
   },
 });
 
@@ -272,7 +285,22 @@ export const bulkStatus = mutation({
   args: { ids, status: productStatus },
   handler: async (ctx, { ids, status }) => {
     await requireStaff(ctx);
-    for (const id of ids) if (await ctx.db.get(id)) await ctx.db.patch(id, { status });
+    let incomplete = 0;
+    for (const id of ids) {
+      const p = await ctx.db.get(id);
+      if (!p) continue;
+      if (p.status === 'draft' && status !== 'draft') {
+        // A batch can't publish an unfinished draft: it stays a draft and is counted.
+        try {
+          assertComplete({ ...p, status });
+        } catch {
+          incomplete++;
+          continue;
+        }
+        await ctx.db.patch(id, { status, createdAt: Date.now() });
+      } else await ctx.db.patch(id, { status });
+    }
+    return { incomplete };
   },
 });
 

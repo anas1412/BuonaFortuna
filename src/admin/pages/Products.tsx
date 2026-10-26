@@ -17,6 +17,7 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'available', label: 'En vente' },
   { key: 'reserved', label: 'Réservés' },
   { key: 'sold', label: 'Vendus' },
+  { key: 'draft', label: 'Brouillons' },
 ];
 
 export default function Products() {
@@ -136,7 +137,7 @@ export default function Products() {
                 <td className="tbl__media">
                   <div className="tbl__pickrow">
                     <input type="checkbox" className="pick" checked={picked.has(p._id)} onChange={() => toggle(p._id)} aria-label={`Sélectionner ${p.name}`} />
-                    <img src={p.images[0]?.url} alt="" className="tbl__thumb" />
+                    {p.images[0] ? <img src={p.images[0].url} alt="" className="tbl__thumb" /> : <span className="tbl__thumb tbl__thumb--empty" aria-hidden="true" />}
                   </div>
                 </td>
                 <td>
@@ -147,7 +148,7 @@ export default function Products() {
                 </td>
                 <td className="hide-sm">{p.category?.name}</td>
                 <td className="hide-sm">{p.size}</td>
-                <td className="num">{formatPrice(p.price)}</td>
+                <td className="num">{p.price ? formatPrice(p.price) : '—'}</td>
                 <td className="tbl__status">
                   <span className={`st st--${p.status}`}>{PRODUCT_STATUS_LABEL[p.status]}</span>
                 </td>
@@ -170,14 +171,20 @@ export default function Products() {
             value=""
             disabled={busy}
             aria-label="Changer le statut"
-            onChange={(e) => void run(() => bulkStatus({ ids: selected, status: e.target.value as ProductStatus }))}
+            onChange={(e) =>
+              void run(async () => {
+                const { incomplete } = await bulkStatus({ ids: selected, status: e.target.value as ProductStatus });
+                if (incomplete)
+                  setNotice(`${incomplete} ${incomplete === 1 ? 'brouillon incomplet est resté' : 'brouillons incomplets sont restés'} en brouillon : il manque une photo, un prix ou une description.`);
+              })
+            }
           >
             <option value="" disabled>
               Statut…
             </option>
             {(Object.keys(PRODUCT_STATUS_LABEL) as ProductStatus[]).map((s) => (
               <option key={s} value={s}>
-                {PRODUCT_STATUS_LABEL[s]}
+                {s === 'available' ? 'Disponible (publier)' : PRODUCT_STATUS_LABEL[s]}
               </option>
             ))}
           </select>

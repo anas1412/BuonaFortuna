@@ -23,6 +23,8 @@ export const productStatus = v.union(
   v.literal('available'),
   v.literal('reserved'),
   v.literal('sold'),
+  // Prepared in the admin, invisible to customers until published.
+  v.literal('draft'),
 );
 
 export const orderStatus = v.union(

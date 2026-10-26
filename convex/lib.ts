@@ -5,6 +5,11 @@ import type { MutationCtx, QueryCtx } from './_generated/server';
 
 export type Role = Doc<'team'>['role'];
 
+/** On sale or reserved: shown in lists, counts and « similar ». Sold pieces keep a page but leave lists. */
+export const isListed = (p: Pick<Doc<'products'>, 'status'>) => p.status === 'available' || p.status === 'reserved';
+/** Has a public page at all. Drafts don't exist for customers: 404, no sitemap entry. */
+export const isPublic = (p: Pick<Doc<'products'>, 'status'>) => p.status !== 'draft';
+
 export const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
 /** Owners: ADMIN_EMAIL, comma-separated. Always admins, never removable from the dashboard. */

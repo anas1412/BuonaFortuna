@@ -1,7 +1,7 @@
 import { ConvexError, v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
-import { requireAdmin, slugify } from './lib';
+import { isListed, requireAdmin, slugify } from './lib';
 
 export type CategoryNode = Doc<'categories'> & {
   /** Pieces on sale (available or reserved) in this node and everything beneath it. */
@@ -25,7 +25,7 @@ export async function loadTree(ctx: QueryCtx | MutationCtx): Promise<CategoryNod
   const byId = new Map(cats.map((c) => [c._id, c]));
   const counts = new Map<Id<'categories'>, number>();
   for (const p of products) {
-    if (p.status === 'sold') continue;
+    if (!isListed(p)) continue;
     let node: Doc<'categories'> | undefined = byId.get(p.categoryId);
     while (node) {
       counts.set(node._id, (counts.get(node._id) ?? 0) + 1);

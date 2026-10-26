@@ -5,7 +5,7 @@
  * The top-left badge is automatic: the discount when the piece has an
  * original price, the same rule that places it in « Bonnes affaires ».
  */
-import { discountPercent, formatPrice } from '../lib/shop';
+import { discountPercent, formatPrice, type ProductStatus } from '../lib/shop';
 
 interface Props {
   product: {
@@ -17,7 +17,7 @@ interface Props {
     price: number;
     compareAtPrice?: number | null;
     images: { url: string }[];
-    status: 'available' | 'reserved' | 'sold';
+    status: ProductStatus;
   };
   /** First few cards above the fold load eagerly. */
   eager?: boolean;
