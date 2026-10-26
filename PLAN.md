@@ -259,8 +259,8 @@ User decision (2026-10-26): the Accueil page becomes a real dashboard. Only data
 
 - [x] Form: prix barré label, live %, validation (client and server)
 - [x] Backend: `products.bulkStatus`, `bulkDiscount` (maths in `applyDiscount`, covered by `bun run check`), `bulkRemove`
-- [ ] Articles: checkboxes + batch bar (desktop + phone)
-- [ ] Verified on dev; deployed (Convex first)
+- [x] Articles: checkboxes + batch bar (desktop + phone); not yet clicked through on screen (session lost)
+- [x] Deployed 2026-10-26: Convex prod, then pushed 3f4c17e; live bundle has the batch bar, shop pages 200
 
 ## Out of scope
 
