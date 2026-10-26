@@ -177,6 +177,25 @@ textarea {
   font-size: 13px;
 }
 
+/* ---- wordmark (Logo.astro and the admin) ------------------------------- */
+
+.logo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.logo__a {
+  color: var(--ink);
+}
+.logo__b {
+  color: var(--red);
+}
+.logo--light .logo__a {
+  color: #fff;
+}
+
 /* ---- buttons ----------------------------------------------------------- */
 
 .btn {

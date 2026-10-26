@@ -1,5 +1,5 @@
 ---
-/** Wordmark: "Buona" in ink, "Fortuna" in coccinelle red. */
+/** Wordmark: "Buona" in ink, "Fortuna" in coccinelle red. Styles live in global.css (.logo), shared with the admin. */
 interface Props {
   size?: number;
   light?: boolean;
@@ -11,21 +11,3 @@ const { size = 24, light = false } = Astro.props;
   <span class="logo__a">Buona</span><span class="logo__b">Fortuna</span>
 </span>
 
-<style>
-  .logo {
-    font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: -0.3px;
-    line-height: 1;
-    white-space: nowrap;
-  }
-  .logo__a {
-    color: var(--ink);
-  }
-  .logo__b {
-    color: var(--red);
-  }
-  .logo--light .logo__a {
-    color: #fff;
-  }
-</style>

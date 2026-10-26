@@ -75,7 +75,7 @@
   border-radius: var(--radius-pill);
   background: var(--red);
   color: #fff;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
   line-height: 22px;
   text-align: center;
@@ -113,7 +113,7 @@
   background: var(--ink);
   color: #fff;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13.5px;
 }
 .acct__who {
   display: grid;
@@ -161,7 +161,7 @@
   background: transparent;
   color: var(--ink-soft);
   font: inherit;
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -177,6 +177,10 @@
 .adm__main {
   padding: 32px 40px 64px;
   min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 16px;
 }
 .adm__main > * {
   max-width: 1160px;
@@ -187,7 +191,7 @@
   justify-content: space-between;
   gap: 12px 20px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 .phead__text {
   display: grid;
@@ -207,7 +211,7 @@
   gap: 4px;
   min-height: 32px;
   margin-left: -4px;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--ink-soft);
   justify-self: start;
@@ -220,7 +224,7 @@
   height: 18px;
 }
 .phead__sub {
-  font-size: 14.5px;
+  font-size: 15px;
   color: var(--ink-soft);
 }
 .phead__actions {
@@ -235,13 +239,13 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin: 36px 0 12px;
+  margin: 20px 0 -4px;
 }
 .sect h2 {
   font-size: 21px;
 }
 .sect a {
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--red);
 }
@@ -254,7 +258,6 @@
   width: fit-content;
   max-width: 100%;
   padding: 4px;
-  margin-bottom: 16px;
   overflow-x: auto;
   scrollbar-width: none;
   background: var(--paper);
@@ -269,14 +272,14 @@
   align-items: center;
   gap: 6px;
   flex: none;
-  min-height: 38px;
+  min-height: 40px;
   padding: 0 16px;
   border: 0;
   border-radius: var(--radius-pill);
   background: transparent;
   color: var(--ink-soft);
   font: inherit;
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -294,7 +297,7 @@
   border-radius: var(--radius-pill);
   background: var(--red);
   color: #fff;
-  font-size: 12px;
+  font-size: 12.5px;
   line-height: 20px;
 }
 .toolbar {
@@ -303,10 +306,6 @@
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-.toolbar .seg {
-  margin-bottom: 0;
 }
 .toolbar .input {
   width: 280px;
@@ -338,7 +337,7 @@ a.tile:hover {
   line-height: 1;
 }
 .tile__l {
-  font-size: 14px;
+  font-size: 13.5px;
   color: var(--ink-soft);
 }
 .tile--hot {
@@ -368,7 +367,7 @@ a.tile:hover {
   vertical-align: middle;
 }
 .tbl th {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--ink-faint);
   background: var(--cream);
@@ -515,11 +514,7 @@ a.tile:hover {
   background: var(--red-soft);
   color: var(--red-deep);
   border-radius: var(--radius-sm);
-  font-size: 14.5px;
-  margin-bottom: 16px;
-}
-.aform__col > .aform__error {
-  margin-bottom: 0;
+  font-size: 15px;
 }
 .field > label .muted {
   font-weight: 500;
@@ -563,7 +558,7 @@ a.tile:hover {
   border-radius: 50%;
   background: rgba(26, 21, 18, 0.72);
   color: #fff;
-  font-size: 14px;
+  font-size: 13.5px;
   cursor: pointer;
 }
 .photo--add {
@@ -667,7 +662,7 @@ a.tile:hover {
   padding: 0;
   min-height: 32px;
   font: inherit;
-  font-size: 14px;
+  font-size: 13.5px;
   color: var(--ink-soft);
   text-decoration: underline;
   cursor: pointer;
@@ -687,12 +682,12 @@ a.tile:hover {
   border-radius: var(--radius-md);
 }
 .empty__title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
 }
 .empty__text {
   max-width: 46ch;
-  font-size: 14.5px;
+  font-size: 15px;
   color: var(--ink-soft);
 }
 .empty .btn {
@@ -722,12 +717,31 @@ a.tile:hover {
   }
 }
 
-/* ---- buttons, admin sizes ---------------------------------------------- */
+/* ---- one scale for the whole back office -------------------------------
+ * Type: 12.5 badges · 13.5 hints, labels, meta · 15 body · 18 card · 21 section · 26–30 page.
+ * Controls: 44px tall (38px for small buttons on desktop).
+ */
+
+:is(.adm, .login) :is(.btn, .input) {
+  min-height: var(--tap, 44px);
+}
+:is(.adm, .login) .input {
+  padding-block: 9px;
+}
+:is(.adm, .login) textarea.input {
+  min-height: 96px;
+}
+:is(.adm, .login) :is(.small, .field > label) {
+  font-size: 13.5px;
+}
+:is(.adm, .login) .chip {
+  font-size: 12.5px;
+}
 
 .btn--sm {
   min-height: 38px;
   padding: 0 16px;
-  font-size: 14px;
+  font-size: 13.5px;
 }
 .btn--danger {
   border-color: var(--red);
@@ -793,7 +807,7 @@ a.tile:hover {
     padding: 8px 10px 10px;
     margin-bottom: 4px;
     border-bottom: 1px solid var(--line);
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 600;
     overflow-wrap: anywhere;
   }
@@ -864,9 +878,6 @@ a.tile:hover {
   }
   .toolbar .input {
     width: 100%;
-  }
-  .seg button {
-    min-height: 40px;
   }
   .tiles {
     grid-template-columns: repeat(2, 1fr);
@@ -1035,13 +1046,13 @@ summary.ctree__row::-webkit-details-marker {
 }
 .ctree__row--l3 {
   padding: 6px 0;
-  font-size: 14px;
+  font-size: 15px;
 }
 .ctree__row--l3.is-empty .ctree__name {
   color: var(--ink-faint);
 }
 .ctree__n {
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--ink-faint);
   min-width: 18px;
 }
@@ -1106,7 +1117,7 @@ summary.ctree__row::-webkit-details-marker {
   flex-wrap: wrap;
 }
 .confirm__hint {
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--ink-soft);
 }
 .confirm__yes {
@@ -1135,7 +1146,7 @@ summary.ctree__row::-webkit-details-marker {
   min-height: 34px;
   padding: 4px 10px;
   max-width: 320px;
-  font-size: 14px;
+  font-size: 15px;
 }
 .ctree__row--l1 .ctree__inline {
   font-family: var(--font-display);
@@ -1178,7 +1189,7 @@ summary.ctree__row::-webkit-details-marker {
   max-width: 760px;
 }
 .ctree__descLabel {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--ink-faint);
 }
@@ -1241,12 +1252,12 @@ summary.ctree__row::-webkit-details-marker {
   box-shadow: 0 24px 60px rgba(26, 21, 18, 0.18);
 }
 .modal__title {
-  font-size: 20px;
+  font-size: 21px;
 }
 .modal__body {
   display: grid;
   gap: 8px;
-  font-size: 14.5px;
+  font-size: 15px;
   line-height: 1.55;
 }
 .modal__actions {
