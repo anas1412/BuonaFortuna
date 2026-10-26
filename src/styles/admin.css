@@ -757,3 +757,15 @@ summary.ctree__row::-webkit-details-marker {
 .modal__danger {
   background: var(--red-deep);
 }
+
+.adm__me {
+  display: grid;
+  overflow-wrap: anywhere;
+  color: var(--ink-soft);
+}
+.adm__me small {
+  color: var(--ink-faint);
+}
+.team__add {
+  margin-bottom: 20px;
+}

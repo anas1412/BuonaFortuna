@@ -38,8 +38,21 @@ export const productImage = v.object({
   storageId: v.optional(v.id('_storage')),
 });
 
+/** Administrateur: everything. Gestionnaire: articles and commandes, no deleting, no structure. */
+export const staffRole = v.union(v.literal('admin'), v.literal('manager'));
+
 export default defineSchema({
   ...authTables,
+
+  /**
+   * People invited from the Équipe page. Owners (ADMIN_EMAIL) aren't stored
+   * here: they're always admins and can't be removed from the dashboard.
+   */
+  team: defineTable({
+    email: v.string(), // lowercase
+    role: staffRole,
+    addedAt: v.number(),
+  }).index('by_email', ['email']),
 
   // Sequential order numbers. Mutations are transactional, so read-then-write is safe.
   counters: defineTable({

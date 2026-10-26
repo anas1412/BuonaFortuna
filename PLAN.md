@@ -178,6 +178,30 @@ User decision (2026-10-26): the « Moins de 30/50/100 DT » collections covered 
 - [x] Same on **prod** (2026-10-26): `bunx convex deploy`, dry run, apply — same 2 changes, rerun clean. Live site needs the new code pushed (old code shows « · 36 » on the brandless card)
 - [ ] Ask the client: does she convert UK/US/IT labels to French sizes when listing? (the table assumes yes)
 
+## v2.2 — team and roles
+
+User decision (2026-10-26): staff are invited from the admin, with two roles. No email invites (no mail service): an admin adds the address, the person creates their account at /admin/connexion.
+
+| | Administrateur | Gestionnaire |
+|---|---|---|
+| Articles: add, edit, photos, prices (incl. prix d'origine) | ✓ | ✓ |
+| Commandes: view, change status | ✓ | ✓ |
+| Supprimer un article | ✓ | — |
+| Catégories | ✓ | — |
+| Équipe (add, change role, remove) | ✓ | — |
+
+- `ADMIN_EMAIL` stays as the **owner** list: always Administrateur, shown on Équipe but can't be removed or demoted (no lock-out).
+- New `team` table (email, role). Sign-up/sign-in allowed for owners + team.
+- The server re-reads the role on **every** call (`requireStaff` / `requireAdmin` in `convex/lib.ts`), so removing someone takes effect immediately; their admin shows « Accès retiré ».
+- Staff may set prices and discounts (default; reversible: make prix d'origine admin-only).
+
+- [x] Backend: `team` table, `convex/team.ts` (me, list, add, setRole, remove), role checks on every function, auth consults the team list
+- [x] Admin: Équipe page, menu and Supprimer buttons by role, admin-only routes, « Accès retiré » screen
+- [x] anasbassoumi@gmail.com is an owner on dev and prod (already in ADMIN_EMAIL on both; prod also has helaismail0@gmail.com)
+- [x] Checked on dev in the browser: Équipe add / duplicate refused / role change / remove; anonymous call rejected; product form sizes per rayon and empty-brand save
+- [ ] Deploy: `bunx convex deploy` **before** pushing (the admin calls `team.me`)
+- [ ] Not tested: a real Gestionnaire session (needs a second account)
+
 ## Out of scope
 
 Cart · online payment · buyer accounts · **multivendor** · Arabic · reviews · custom domain · automatic best-sellers ranking

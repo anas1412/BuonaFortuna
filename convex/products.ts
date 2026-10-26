@@ -2,7 +2,7 @@ import { ConvexError, v } from 'convex/values';
 import type { Doc } from './_generated/dataModel';
 import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
 import { isUnder, loadTree, pathAncestors, type CategoryNode } from './categories';
-import { requireAdmin, slugify, uniqueProductSlug } from './lib';
+import { requireAdmin, requireStaff, slugify, uniqueProductSlug } from './lib';
 import { condition, productImage, productStatus } from './schema';
 
 const sortKey = v.union(v.literal('recent'), v.literal('priceAsc'), v.literal('priceDesc'));
@@ -168,7 +168,7 @@ export const allSlugs = query({
 export const adminList = query({
   args: { status: v.optional(productStatus) },
   handler: async (ctx, { status }) => {
-    await requireAdmin(ctx);
+    await requireStaff(ctx);
     const rows = status
       ? await ctx.db
           .query('products')
@@ -185,7 +185,7 @@ export const adminList = query({
 export const adminGet = query({
   args: { id: v.id('products') },
   handler: async (ctx, { id }) => {
-    await requireAdmin(ctx);
+    await requireStaff(ctx);
     return ctx.db.get(id);
   },
 });
@@ -217,7 +217,7 @@ async function assertLeaf(ctx: MutationCtx, categoryId: Doc<'categories'>['_id']
 export const create = mutation({
   args: productFields,
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
+    await requireStaff(ctx);
     if (!args.images.length) throw new ConvexError('Ajoutez au moins une photo.');
     await assertLeaf(ctx, args.categoryId);
     const slug = await uniqueProductSlug(ctx, slugify(`${args.name} ${args.size}`));
@@ -228,7 +228,7 @@ export const create = mutation({
 export const update = mutation({
   args: { id: v.id('products'), ...productFields },
   handler: async (ctx, { id, ...args }) => {
-    await requireAdmin(ctx);
+    await requireStaff(ctx);
     const existing = await ctx.db.get(id);
     if (!existing) throw new ConvexError('Article introuvable.');
     if (!args.images.length) throw new ConvexError('Ajoutez au moins une photo.');
@@ -258,7 +258,7 @@ export const remove = mutation({
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
-    await requireAdmin(ctx);
+    await requireStaff(ctx);
     return ctx.storage.generateUploadUrl();
   },
 });
@@ -267,7 +267,7 @@ export const generateUploadUrl = mutation({
 export const imageFromUpload = mutation({
   args: { storageId: v.id('_storage') },
   handler: async (ctx, { storageId }) => {
-    await requireAdmin(ctx);
+    await requireStaff(ctx);
     const url = await ctx.storage.getUrl(storageId);
     if (!url) throw new ConvexError("Le fichier n'a pas été trouvé.");
     return { url, storageId };

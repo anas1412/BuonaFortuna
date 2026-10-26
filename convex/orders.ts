@@ -1,6 +1,6 @@
 import { ConvexError, v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import { requireAdmin } from './lib';
+import { requireStaff } from './lib';
 import { orderStatus } from './schema';
 
 // ---- public -------------------------------------------------------------
@@ -86,7 +86,7 @@ export const confirmation = query({
 export const list = query({
   args: { status: v.optional(orderStatus) },
   handler: async (ctx, { status }) => {
-    await requireAdmin(ctx);
+    await requireStaff(ctx);
     if (status) {
       return ctx.db
         .query('orders')
@@ -102,7 +102,7 @@ export const list = query({
 export const get = query({
   args: { id: v.id('orders') },
   handler: async (ctx, { id }) => {
-    await requireAdmin(ctx);
+    await requireStaff(ctx);
     return ctx.db.get(id);
   },
 });
@@ -114,7 +114,7 @@ export const get = query({
 export const setStatus = mutation({
   args: { id: v.id('orders'), status: orderStatus },
   handler: async (ctx, { id, status }) => {
-    await requireAdmin(ctx);
+    await requireStaff(ctx);
     const order = await ctx.db.get(id);
     if (!order) throw new ConvexError('Commande introuvable.');
     await ctx.db.patch(id, { status });
@@ -131,7 +131,7 @@ export const setStatus = mutation({
 export const stats = query({
   args: {},
   handler: async (ctx) => {
-    await requireAdmin(ctx);
+    await requireStaff(ctx);
     const [orders, products] = await Promise.all([
       ctx.db.query('orders').collect(),
       ctx.db.query('products').collect(),

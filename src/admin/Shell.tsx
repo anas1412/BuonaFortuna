@@ -2,10 +2,13 @@ import { useAuthActions } from '@convex-dev/auth/react';
 import { useQuery } from 'convex/react';
 import { NavLink, Outlet } from 'react-router';
 import { api } from '../../convex/_generated/api';
+import { ROLE_LABEL, useMe } from './util';
 
 export default function Shell() {
   const { signOut } = useAuthActions();
   const stats = useQuery(api.orders.stats);
+  const me = useMe();
+  const isAdmin = me?.role === 'admin';
 
   return (
     <div className="adm">
@@ -27,10 +30,17 @@ export default function Shell() {
             {stats && stats.newOrders > 0 && <span className="chip chip--red">{stats.newOrders}</span>}
           </NavLink>
           <NavLink to="/produits">Articles</NavLink>
-          <NavLink to="/categories">Catégories</NavLink>
+          {isAdmin && <NavLink to="/categories">Catégories</NavLink>}
+          {isAdmin && <NavLink to="/equipe">Équipe</NavLink>}
         </nav>
 
         <footer>
+          {me && (
+            <span className="adm__me">
+              {me.email}
+              <small>{ROLE_LABEL[me.role]}</small>
+            </span>
+          )}
           <a href="/" target="_blank" rel="noopener">
             Voir la boutique ↗
           </a>

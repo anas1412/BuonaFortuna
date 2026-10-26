@@ -6,7 +6,7 @@ import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { CONDITIONS, PRODUCT_STATUS_LABEL, type Condition, type ProductStatus } from '../../lib/shop';
 import { sizeScale } from '../../lib/sizes';
-import { dinarsToMillimes, errorMessage, millimesToDinars } from '../util';
+import { dinarsToMillimes, errorMessage, millimesToDinars, useIsAdmin } from '../util';
 
 type Image = { url: string; storageId?: Id<'_storage'> };
 
@@ -40,6 +40,7 @@ const EMPTY: Draft = {
 export default function ProductForm() {
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
+  const isAdmin = useIsAdmin();
   const navigate = useNavigate();
 
   const tree = useQuery(api.categories.tree);
@@ -304,7 +305,7 @@ export default function ProductForm() {
             <Link to="/produits" className="btn btn--ghost">
               Annuler
             </Link>
-            {isEdit && (
+            {isEdit && isAdmin && (
               <span style={{ marginLeft: 'auto' }}>
                 <ConfirmButton
                   label="Supprimer l'article"

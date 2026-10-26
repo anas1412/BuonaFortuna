@@ -1,4 +1,12 @@
+import { useQuery } from 'convex/react';
 import { ConvexError } from 'convex/values';
+import { api } from '../../convex/_generated/api';
+
+export const ROLE_LABEL = { admin: 'Administrateur', manager: 'Gestionnaire' } as const;
+
+/** The signed-in staff member: undefined while loading, null without access. */
+export const useMe = () => useQuery(api.team.me);
+export const useIsAdmin = () => useMe()?.role === 'admin';
 
 export function fmtDate(ms: number) {
   return new Intl.DateTimeFormat('fr-TN', {

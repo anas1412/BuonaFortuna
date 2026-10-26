@@ -17,6 +17,7 @@ import type * as products from "../products.js";
 import type * as seed from "../seed.js";
 import type * as seedData from "../seedData.js";
 import type * as seedTree from "../seedTree.js";
+import type * as team from "../team.js";
 
 import type {
   ApiFromModules,
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   seedData: typeof seedData;
   seedTree: typeof seedTree;
+  team: typeof team;
 }>;
 
 /**
