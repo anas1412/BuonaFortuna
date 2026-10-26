@@ -320,7 +320,7 @@ export default function ProductForm() {
                 <label htmlFor="status">Statut</label>
                 <select id="status" className="input" value={draft.status} onChange={(e) => set('status', e.target.value as ProductStatus)}>
                   {(Object.keys(PRODUCT_STATUS_LABEL) as ProductStatus[]).map((s) => (
-                    <option key={s} value={s}>
+                    <option key={s} value={s} disabled={s === 'draft' && existing?.status === 'reserved'}>
                       {PRODUCT_STATUS_LABEL[s]}
                     </option>
                   ))}

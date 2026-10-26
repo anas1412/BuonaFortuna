@@ -251,6 +251,7 @@ export const update = mutation({
     await requireStaff(ctx);
     const existing = await ctx.db.get(id);
     if (!existing) throw new ConvexError('Article introuvable.');
+    if (existing.status === 'reserved' && args.status === 'draft') throw new ConvexError(RESERVED_DRAFT);
     assertComplete(args);
     assertPrices(args.price, args.compareAtPrice);
     await assertLeaf(ctx, args.categoryId);
@@ -280,15 +281,23 @@ export const remove = mutation({
 
 const ids = v.array(v.id('products'));
 
+/** Hiding a piece someone has ordered would leave an order pointing at a page that 404s. */
+const RESERVED_DRAFT = 'Cet article est réservé par une commande en cours : confirmez ou annulez la commande avant de le passer en brouillon.';
+
 /** Articles › selection › Statut. */
 export const bulkStatus = mutation({
   args: { ids, status: productStatus },
   handler: async (ctx, { ids, status }) => {
     await requireStaff(ctx);
     let incomplete = 0;
+    let reserved = 0;
     for (const id of ids) {
       const p = await ctx.db.get(id);
       if (!p) continue;
+      if (p.status === 'reserved' && status === 'draft') {
+        reserved++;
+        continue;
+      }
       if (p.status === 'draft' && status !== 'draft') {
         // A batch can't publish an unfinished draft: it stays a draft and is counted.
         try {
@@ -300,7 +309,7 @@ export const bulkStatus = mutation({
         await ctx.db.patch(id, { status, createdAt: Date.now() });
       } else await ctx.db.patch(id, { status });
     }
-    return { incomplete };
+    return { incomplete, reserved };
   },
 });
 

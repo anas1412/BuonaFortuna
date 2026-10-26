@@ -173,9 +173,12 @@ export default function Products() {
             aria-label="Changer le statut"
             onChange={(e) =>
               void run(async () => {
-                const { incomplete } = await bulkStatus({ ids: selected, status: e.target.value as ProductStatus });
-                if (incomplete)
-                  setNotice(`${incomplete} ${incomplete === 1 ? 'brouillon incomplet est resté' : 'brouillons incomplets sont restés'} en brouillon : il manque une photo, un prix ou une description.`);
+                const { incomplete, reserved } = await bulkStatus({ ids: selected, status: e.target.value as ProductStatus });
+                const notes = [
+                  incomplete && `${incomplete} ${incomplete === 1 ? 'brouillon incomplet est resté' : 'brouillons incomplets sont restés'} en brouillon : il manque une photo, un prix ou une description.`,
+                  reserved && `${reserved} ${reserved === 1 ? 'article réservé n’a pas été masqué' : 'articles réservés n’ont pas été masqués'} : une commande est en cours.`,
+                ].filter(Boolean);
+                if (notes.length) setNotice(notes.join(' '));
               })
             }
           >
