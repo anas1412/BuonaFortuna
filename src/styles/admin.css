@@ -19,7 +19,7 @@
   flex: none;
 }
 .num,
-.tile__n {
+.bars__x {
   font-variant-numeric: tabular-nums;
 }
 
@@ -330,11 +330,12 @@
 a.tile:hover {
   border-color: var(--line-strong);
 }
+/* hero figures: the body sans, proportional digits (dataviz rule) */
 .tile__n {
-  font-family: var(--font-display);
-  font-size: 34px;
+  font-size: 28px;
   font-weight: 700;
-  line-height: 1;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 .tile__l {
   font-size: 13.5px;
@@ -346,6 +347,193 @@ a.tile:hover {
 }
 .tile--hot .tile__n {
   color: var(--red);
+}
+
+/* ---- dashboard ---------------------------------------------------------- */
+
+.alerts {
+  display: grid;
+  gap: 8px;
+}
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--red-softer);
+  border: 1px solid var(--red-soft);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+}
+.alert .icon {
+  color: var(--red);
+  margin-top: 1px;
+}
+.alert:hover {
+  border-color: var(--red);
+}
+.alert > span {
+  display: grid;
+  gap: 2px;
+}
+.alert__sub {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+.kpi__delta {
+  font-size: 13.5px;
+  color: var(--ink-faint);
+}
+.panel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  flex-wrap: wrap;
+}
+.panel__aside {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+.cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* ranked list: a thin bar under each name, scaled to the leader */
+.rank {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.rank li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  font-size: 15px;
+  background: linear-gradient(var(--red), var(--red)) left bottom / calc(var(--w) * 100%) 4px no-repeat,
+    linear-gradient(var(--line), var(--line)) left bottom / 100% 4px no-repeat;
+  border-radius: 2px;
+}
+.rank__n {
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* sales chart: HTML bars, one series in brand red */
+.bars {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.bars__plot {
+  position: relative;
+  height: 180px;
+  margin-right: 64px; /* room for the gridline labels */
+}
+.bars__grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+}
+.bars__grid::after {
+  content: attr(data-label);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: -9px;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.bars__grid--top {
+  top: 0;
+}
+.bars__grid--mid {
+  top: 50%;
+}
+.bars__grid--base {
+  bottom: 0;
+  background: var(--line-strong);
+}
+.bars__cols {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(30, 1fr);
+}
+.bars__col {
+  position: relative;
+  border: 0;
+  padding: 0 1px; /* the 2px gap between bars */
+  background: transparent;
+  cursor: default;
+}
+.bars__col:hover,
+.bars__col:focus-visible {
+  background: var(--red-softer);
+  outline: none;
+}
+.bars__bar {
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  bottom: 0;
+  height: max(calc(var(--h) * 100%), 3px);
+  background: var(--red);
+  border-radius: 4px 4px 0 0;
+}
+.bars__tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: clamp(70px, calc(var(--x) * 100%), calc(100% - 70px));
+  transform: translateX(-50%);
+  display: grid;
+  padding: 8px 12px;
+  background: var(--ink);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.bars__tip span {
+  color: rgba(255, 255, 255, 0.75);
+}
+.bars__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 0 16px;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+.bars__x {
+  display: flex;
+  justify-content: space-between;
+  margin-right: 64px;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+.bars__table > summary {
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--red);
+  cursor: pointer;
+}
+.bars__table .tbl {
+  margin-top: 8px;
 }
 
 /* ---- lists: a table on desktop, cards on a phone ----------------------- */
@@ -476,7 +664,8 @@ a.tile:hover {
   display: grid;
   gap: 16px;
 }
-.aform__card {
+.aform__card,
+.panel {
   padding: 20px;
   background: var(--paper);
   border: 1px solid var(--line);
@@ -484,7 +673,8 @@ a.tile:hover {
   display: grid;
   gap: 16px;
 }
-.aform__card h3 {
+.aform__card h3,
+.panel h3 {
   font-size: 18px;
 }
 .aform__card > .small {
@@ -887,7 +1077,17 @@ a.tile:hover {
     padding: 16px;
   }
   .tile__n {
-    font-size: 30px;
+    font-size: 24px;
+  }
+  .cols {
+    grid-template-columns: 1fr;
+  }
+  .panel {
+    padding: 18px 16px;
+  }
+  .bars__plot,
+  .bars__x {
+    margin-right: 52px;
   }
 
   /* table rows become cards: picture | text | price + status */

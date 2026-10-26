@@ -230,6 +230,22 @@ Users have never used a back office, and will mostly work from a phone (photo �
 - [x] Forms and detail: photos first and sticky save bar on phones; order detail with Appeler/WhatsApp buttons and « Que faire ? » first; categories no longer overflow; 24 h times; zero inline styles
 - [x] Verified on 375 (no horizontal overflow on any route) and 1280; login checked live at 375 after deploy (pushed 9db4859, 2026-10-26)
 
+## v2.4 — dashboard statistics
+
+User decision (2026-10-26): the Accueil page becomes a real dashboard. Only data the shop already records (no visitor tracking: the site has none).
+
+- **Ce mois-ci vs le mois dernier** (months in Tunis time): ventes encaissées (delivered orders, items only — delivery fees go to the courier), commandes, panier moyen, taux d'annulation (refusals cost money with cash on delivery).
+- **Chart**: sales received per day, last 30 days. Inline SVG, one series in brand red (validated), thin bars, hover/focus tooltip, a « Voir les chiffres » table twin.
+- **Stock**: en vente / réservés / vendus, pièces ajoutées ce mois, délai moyen de vente (order date − listing date).
+- **Meilleurs rayons**: top rayons by pieces sold.
+- **À traiter**: orders to call, and confirmed orders not delivered after 3 days (likely stuck with the courier).
+- Orders get optional `confirmedAt` / `deliveredAt`, set on status change; older orders fall back to `createdAt`.
+- Stat-tile figures use the body sans with proportional digits (dataviz rule), not the display serif.
+
+- [x] Backend: `confirmedAt`/`deliveredAt` set on status change; `orders.dashboard`; `orders.stats` slimmed to the badge count
+- [x] UI: KPIs with deltas, chart (hover tooltip) + « Voir les chiffres », stock, rayons, à traiter, recent orders; empty states, no fake data. Tested end to end on dev with test order BF-0002 (new → confirmed → delivered); dev product « Body de naissance » is now sold
+- [ ] Verified phone + desktop; Convex prod deployed before push
+
 ## Out of scope
 
 Cart · online payment · buyer accounts · **multivendor** · Arabic · reviews · custom domain · automatic best-sellers ranking

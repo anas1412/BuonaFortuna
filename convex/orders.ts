@@ -117,7 +117,12 @@ export const setStatus = mutation({
     await requireStaff(ctx);
     const order = await ctx.db.get(id);
     if (!order) throw new ConvexError('Commande introuvable.');
-    await ctx.db.patch(id, { status });
+    const now = Date.now();
+    await ctx.db.patch(id, {
+      status,
+      ...(status === 'confirmed' && { confirmedAt: now }),
+      ...(status === 'delivered' && { deliveredAt: now }),
+    });
 
     const productStatus =
       status === 'delivered' ? 'sold' : status === 'cancelled' ? 'available' : 'reserved';
@@ -128,23 +133,108 @@ export const setStatus = mutation({
   },
 });
 
+/** The « À appeler » badge in the menu and on the Commandes tabs. */
 export const stats = query({
   args: {},
   handler: async (ctx) => {
     await requireStaff(ctx);
-    const [orders, products] = await Promise.all([
+    const fresh = await ctx.db.query('orders').withIndex('by_status', (q) => q.eq('status', 'new')).collect();
+    return { newOrders: fresh.length };
+  },
+});
+
+const DAY = 86_400_000;
+const TUNIS = 3_600_000; // UTC+1 all year, no DST
+const dayKey = (ms: number) => new Date(ms + TUNIS).toISOString().slice(0, 10);
+/** Midnight Tunis time on the 1st of the month `offset` months from `ms`. */
+function monthStart(ms: number, offset = 0) {
+  const d = new Date(ms + TUNIS);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + offset, 1) - TUNIS;
+}
+
+/**
+ * Everything on the Accueil page in one read. Sales count items only: the
+ * delivery fee goes to the courier. Money is « encaissé » on delivery.
+ * ponytail: scans every order and product on each read; fine for one shop's volume, add per-day rollups if it grows to thousands.
+ */
+export const dashboard = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireStaff(ctx);
+    const [orders, products, categories] = await Promise.all([
       ctx.db.query('orders').collect(),
       ctx.db.query('products').collect(),
+      ctx.db.query('categories').collect(),
     ]);
-    const count = <T extends { status: string }>(rows: T[], s: string) =>
-      rows.filter((r) => r.status === s).length;
+    const now = Date.now();
+    const items = (o: (typeof orders)[number]) => o.items.reduce((s, i) => s + i.price, 0);
+    const deliveredAt = (o: (typeof orders)[number]) => o.deliveredAt ?? o.createdAt;
+    const delivered = orders.filter((o) => o.status === 'delivered');
+
+    function period(from: number, to: number) {
+      const placed = orders.filter((o) => o.createdAt >= from && o.createdAt < to);
+      const kept = placed.filter((o) => o.status !== 'cancelled');
+      return {
+        revenue: delivered.filter((o) => deliveredAt(o) >= from && deliveredAt(o) < to).reduce((s, o) => s + items(o), 0),
+        orders: placed.length,
+        avgBasket: kept.length ? Math.round(kept.reduce((s, o) => s + items(o), 0) / kept.length) : null,
+        cancelRate: placed.length ? (placed.length - kept.length) / placed.length : null,
+      };
+    }
+    const thisMonth = monthStart(now);
+
+    // Sales received per day, the last 30 days, oldest first.
+    const days = Array.from({ length: 30 }, (_, i) => ({ day: dayKey(now - (29 - i) * DAY), revenue: 0, orders: 0 }));
+    const byDay = new Map(days.map((d) => [d.day, d]));
+    for (const o of delivered) {
+      const d = byDay.get(dayKey(deliveredAt(o)));
+      if (d) {
+        d.revenue += items(o);
+        d.orders += 1;
+      }
+    }
+
+    // How long a piece waits between listing and its order, and which rayons sell.
+    const productById = new Map(products.map((p) => [p._id, p]));
+    const categoryById = new Map(categories.map((c) => [c._id, c]));
+    const byPath = new Map(categories.map((c) => [c.path, c]));
+    const waits: number[] = [];
+    const rayonSales = new Map<string, number>();
+    for (const o of delivered) {
+      for (const it of o.items) {
+        const p = productById.get(it.productId);
+        if (!p) continue;
+        waits.push((o.createdAt - p.createdAt) / DAY);
+        const path = categoryById.get(p.categoryId)?.path.split('/').slice(0, 2).join('/');
+        if (path) rayonSales.set(path, (rayonSales.get(path) ?? 0) + 1);
+      }
+    }
+    const topRayons = [...rayonSales]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([path, sold]) => {
+        const [dept] = path.split('/');
+        return { path, name: [byPath.get(dept)?.name, byPath.get(path)?.name].filter(Boolean).join(' › '), sold };
+      });
+
+    const count = (s: string) => products.filter((p) => p.status === s).length;
     return {
-      newOrders: count(orders, 'new'),
-      confirmedOrders: count(orders, 'confirmed'),
-      available: count(products, 'available'),
-      reserved: count(products, 'reserved'),
-      sold: count(products, 'sold'),
-      recent: orders.sort((a, b) => b.createdAt - a.createdAt).slice(0, 6),
+      month: period(thisMonth, now + 1),
+      lastMonth: period(monthStart(now, -1), thisMonth),
+      days,
+      stock: {
+        available: count('available'),
+        reserved: count('reserved'),
+        sold: count('sold'),
+        addedThisMonth: products.filter((p) => p.createdAt >= thisMonth).length,
+        avgDaysToSell: waits.length ? Math.round((waits.reduce((a, b) => a + b, 0) / waits.length) * 10) / 10 : null,
+      },
+      topRayons,
+      toCall: orders.filter((o) => o.status === 'new').length,
+      stuck: orders
+        .filter((o) => o.status === 'confirmed' && (o.confirmedAt ?? o.createdAt) < now - 3 * DAY)
+        .map((o) => ({ _id: o._id, number: o.number, name: o.customer.name, days: Math.floor((now - (o.confirmedAt ?? o.createdAt)) / DAY) })),
+      recent: [...orders].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5),
     };
   },
 });

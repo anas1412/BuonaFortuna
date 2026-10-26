@@ -121,6 +121,9 @@ export default defineSchema({
     status: orderStatus,
     paymentMethod: v.literal('cod'),
     createdAt: v.number(),
+    // Set when staff move the order; older orders fall back to createdAt.
+    confirmedAt: v.optional(v.number()),
+    deliveredAt: v.optional(v.number()),
   })
     .index('by_status', ['status', 'createdAt'])
     .index('by_number', ['number']),
