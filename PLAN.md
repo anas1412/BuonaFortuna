@@ -244,7 +244,7 @@ User decision (2026-10-26): the Accueil page becomes a real dashboard. Only data
 
 - [x] Backend: `confirmedAt`/`deliveredAt` set on status change; `orders.dashboard`; `orders.stats` slimmed to the badge count
 - [x] UI: KPIs with deltas, chart (hover tooltip) + « Voir les chiffres », stock, rayons, à traiter, recent orders; empty states, no fake data. Tested end to end on dev with test order BF-0002 (new → confirmed → delivered); dev product « Body de naissance » is now sold
-- [ ] Verified phone + desktop; Convex prod deployed before push
+- [x] Verified phone + desktop; Convex prod deployed, then pushed 845c6ef (2026-10-26); live bundle checked, shop pages 200
 
 ## Out of scope
 
