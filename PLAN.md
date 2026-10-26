@@ -228,7 +228,7 @@ Users have never used a back office, and will mostly work from a phone (photo �
 - [x] Shell: phone top bar + bottom tab bar with icons; sidebar with icons; account menu (closes on tap outside / navigation)
 - [x] Lists: shared `OrderList`; rows are real links; tables → cards on phones (CSS); status tabs scroll sideways
 - [x] Forms and detail: photos first and sticky save bar on phones; order detail with Appeler/WhatsApp buttons and « Que faire ? » first; categories no longer overflow; 24 h times; zero inline styles
-- [x] Verified on 375 (no horizontal overflow on any route) and 1280; login not re-checked (would sign out)
+- [x] Verified on 375 (no horizontal overflow on any route) and 1280; login checked live at 375 after deploy (pushed 9db4859, 2026-10-26)
 
 ## Out of scope
 
