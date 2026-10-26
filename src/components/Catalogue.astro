@@ -7,9 +7,12 @@
  * works with JavaScript disabled. The category section shows the subtree of
  * wherever you are — departments at the root, rayons inside a department,
  * types inside a rayon — and only the nodes that have stock. On small screens
- * the rail folds into a native <details>.
+ * the rail folds into a native <details>. Sorting isn't a filter, so it sits
+ * above the grid instead.
  */
 import ProductCard from './ProductCard.astro';
+import { BUDGETS, SORTS, readFilters } from '../lib/filters';
+import { hasSizeFacet, orderSizes, sizeScale } from '../lib/sizes';
 import { CONDITIONS } from '../lib/shop';
 
 type Node = { _id: string; name: string; path: string; level: number; parentId?: string; count: number };
@@ -27,16 +30,15 @@ interface Props {
 
 const { basePath, tree, current = null, products, sizes, params } = Astro.props;
 
-const selectedConditions = params.getAll('etat');
-const selectedSizes = params.getAll('taille');
-const sort = params.get('tri') ?? 'recent';
-const q = params.get('q') ?? '';
-
-const SORTS = [
-  { key: 'recent', label: 'Nouveautés' },
-  { key: 'prix-asc', label: 'Prix croissant' },
-  { key: 'prix-desc', label: 'Prix décroissant' },
-];
+const showSizes = hasSizeFacet(current?.path);
+const filters = readFilters(params, { sizes: showSizes });
+const selectedConditions: string[] = filters.conditions ?? [];
+const selectedSizes = filters.sizes ?? [];
+const budget = filters.maxPrice;
+const q = filters.q ?? '';
+const sortKey = SORTS.find((s) => s.value === filters.sort)!.key;
+const scale = showSizes ? sizeScale(current!.path) : null;
+const sizeOptions = scale ? orderSizes(sizes, scale) : [];
 
 // What to list in the category section: children of the current node, or the departments.
 const children = tree.filter((c) => (current ? c.parentId === current._id : c.level === 1) && c.count > 0);
@@ -56,23 +58,25 @@ function toggle(key: string, value: string) {
 
 function withParam(key: string, value: string | null) {
   const next = new URLSearchParams(params);
-  if (value === null || (key === 'tri' && value === 'recent')) next.delete(key);
+  if (value === null || (key === 'tri' && value === SORTS[0].key)) next.delete(key);
   else next.set(key, value);
   const qs = next.toString();
   return qs ? `${basePath}?${qs}` : basePath;
 }
 
-/** Category links keep the non-category filters. */
+/** Category links keep the filters that still make sense elsewhere (not search, not sizes). */
 function categoryHref(path: string | null) {
   const keep = new URLSearchParams(params);
   keep.delete('q');
+  keep.delete('taille');
   const qs = keep.toString();
   const base = path === null ? '/catalogue' : `/c/${path}`;
   return qs ? `${base}?${qs}` : base;
 }
 
-const filterCount = selectedConditions.length + selectedSizes.length + (q ? 1 : 0);
-const hasFilters = filterCount > 0 || sort !== 'recent';
+const filterCount = selectedConditions.length + selectedSizes.length + (budget ? 1 : 0) + (q ? 1 : 0);
+// « Effacer » clears the filters but keeps the chosen order.
+const resetHref = sortKey === SORTS[0].key ? basePath : `${basePath}?tri=${sortKey}`;
 ---
 
 <div class="cat">
@@ -100,7 +104,6 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
               <li>
                 <a href={categoryHref(c.path)} class="cat__item">
                   <span>{c.name}</span>
-                  <span class="cat__n">{c.count}</span>
                 </a>
               </li>
             ))
@@ -128,12 +131,31 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
         </ul>
       </section>
 
+      <section class="cat__group">
+        <h3 class="cat__title">Budget</h3>
+        <ul class="cat__list">
+          {
+            BUDGETS.map((b) => {
+              const on = budget === b * 1000;
+              return (
+                <li>
+                  <a href={withParam('budget', on ? null : String(b))} class:list={['cat__item', 'cat__radio', { 'is-active': on }]} rel="nofollow">
+                    <span class="cat__dot" aria-hidden="true"></span>
+                    Moins de {b} DT
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </section>
+
       {
-        sizes.length > 0 && (
+        (sizeOptions.length > 1 || selectedSizes.length > 0) && (
           <section class="cat__group">
-            <h3 class="cat__title">Taille</h3>
+            <h3 class="cat__title">{scale!.label}</h3>
             <ul class="cat__sizes">
-              {sizes.map((s) => (
+              {sizeOptions.map((s) => (
                 <li>
                   <a href={toggle('taille', s)} class:list={['cat__size', { 'is-active': selectedSizes.includes(s) }]} rel="nofollow">
                     {s}
@@ -145,31 +167,27 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
         )
       }
 
-      <section class="cat__group">
-        <h3 class="cat__title">Trier</h3>
-        <ul class="cat__list">
-          {
-            SORTS.map((s) => (
-              <li>
-                <a href={withParam('tri', s.key)} class:list={['cat__item', 'cat__radio', { 'is-active': sort === s.key }]} rel="nofollow">
-                  <span class="cat__dot" aria-hidden="true"></span>
-                  {s.label}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </section>
-
-      {hasFilters && <a href={basePath} class="cat__reset" rel="nofollow">Effacer les filtres</a>}
+      {filterCount > 0 && <a href={resetHref} class="cat__reset" rel="nofollow">Effacer les filtres</a>}
     </div>
   </details>
 
   <div class="cat__main">
-    <p class="cat__count">
-      {products.length} {products.length === 1 ? 'article' : 'articles'}
-      {q && <> pour « <strong>{q}</strong> »</>}
-    </p>
+    <div class="cat__bar">
+      <p class="cat__count">
+        {products.length} {products.length === 1 ? 'article' : 'articles'}
+        {q && <> pour « <strong>{q}</strong> »</>}
+      </p>
+      <nav class="cat__sort" aria-label="Trier">
+        <span>Trier :</span>
+        {
+          SORTS.map((s) => (
+            <a href={withParam('tri', s.key)} class:list={{ 'is-active': sortKey === s.key }} aria-current={sortKey === s.key ? 'true' : undefined} rel="nofollow">
+              {s.label}
+            </a>
+          ))
+        }
+      </nav>
+    </div>
 
     {
       products.length > 0 ? (
@@ -245,10 +263,6 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
     font-size: 13px;
     justify-content: flex-start;
   }
-  .cat__n {
-    font-size: 12px;
-    color: var(--ink-faint);
-  }
   .cat__box,
   .cat__dot {
     width: 16px;
@@ -296,10 +310,31 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
     font-weight: 600;
     color: var(--red);
   }
-  .cat__count {
-    font-size: 14px;
-    color: var(--ink-faint);
+  .cat__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 16px;
     margin-bottom: 16px;
+    font-size: 14px;
+  }
+  .cat__count {
+    color: var(--ink-faint);
+  }
+  .cat__sort {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    color: var(--ink-faint);
+  }
+  .cat__sort a {
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .cat__sort a:hover,
+  .cat__sort a.is-active {
+    color: var(--red);
   }
   .cat__empty {
     display: grid;
@@ -307,6 +342,14 @@ const hasFilters = filterCount > 0 || sort !== 'recent';
     justify-items: start;
     padding: 48px 0;
     max-width: 44ch;
+  }
+
+  /* Desktop: the <details> stays closed but its content shows anyway. */
+  @media (min-width: 900px) {
+    .cat__rail::details-content {
+      content-visibility: visible;
+      display: contents;
+    }
   }
 
   @media (max-width: 899px) {

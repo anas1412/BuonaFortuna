@@ -1,6 +1,8 @@
+import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { internalMutation, type MutationCtx } from './_generated/server';
-import { slugify } from './lib';
+import { slugify, uniqueProductSlug } from './lib';
+import { sizeScale } from '../src/lib/sizes';
 import { seedProducts } from './seedData';
 import { seedProductPaths, seedTree, type SeedNode } from './seedTree';
 
@@ -111,5 +113,36 @@ export const migrateCategoriesV2 = internalMutation({
       }
     }
     return `moved ${moved} products, deleted ${deleted} flat categories`;
+  },
+});
+
+/**
+ * Bring existing products in line with the size table (src/lib/sizes.ts) and
+ * the optional brand. Dry run by default — it reports, then pass
+ * `'{"apply": true}'` to write. Sizes it can't map are reported, not guessed.
+ */
+const SIZE_FIXES: Record<string, string> = { '31/32': '40' }; // jeans W31 ≈ French 40
+const NOT_BRANDS = new Set(['vintage']); // a style, not a label
+
+export const fixPlaceholders = internalMutation({
+  args: { apply: v.optional(v.boolean()) },
+  handler: async (ctx, { apply = false }) => {
+    const paths = new Map((await ctx.db.query('categories').collect()).map((c) => [c._id, c.path]));
+    const report: string[] = [];
+    for (const p of await ctx.db.query('products').collect()) {
+      const patch: Partial<Doc<'products'>> = {};
+      const scale = sizeScale(paths.get(p.categoryId) ?? '');
+      if (scale.values && !scale.values.includes(p.size)) {
+        const fixed = SIZE_FIXES[p.size];
+        if (fixed && scale.values.includes(fixed)) patch.size = fixed;
+        else report.push(`${p.slug}: size « ${p.size} » not in its scale, no mapping — left as is`);
+      }
+      if (NOT_BRANDS.has(p.brand.trim().toLowerCase())) patch.brand = '';
+      if (patch.size) patch.slug = await uniqueProductSlug(ctx, slugify(`${p.name} ${patch.size}`), p._id);
+      if (Object.keys(patch).length === 0) continue;
+      report.push(`${p.slug}: ${JSON.stringify(patch)}`);
+      if (apply) await ctx.db.patch(p._id, patch);
+    }
+    return { applied: apply, report };
   },
 });

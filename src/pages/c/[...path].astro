@@ -8,27 +8,19 @@
 import Catalogue from '../../components/Catalogue.astro';
 import Base from '../../layouts/Base.astro';
 import { api, convex } from '../../lib/convex';
-import { CONDITIONS, SITE_URL, type Condition } from '../../lib/shop';
+import { readFilters } from '../../lib/filters';
+import { hasSizeFacet } from '../../lib/sizes';
+import { SITE_URL } from '../../lib/shop';
 
 const path = (Astro.params.path ?? '').replace(/\/+$/, '');
 if (!path) return Astro.redirect('/catalogue', 301);
 
 const params = Astro.url.searchParams;
-const conditions = params.getAll('etat').filter((c): c is Condition => (CONDITIONS as readonly string[]).includes(c));
-const sizes = params.getAll('taille');
-const tri = params.get('tri');
-const sort = tri === 'prix-asc' ? 'priceAsc' : tri === 'prix-desc' ? 'priceDesc' : 'recent';
 
 const [node, tree, result] = await Promise.all([
   convex.query(api.categories.byPath, { path }),
   convex.query(api.categories.tree, {}),
-  convex.query(api.products.catalogue, {
-    categoryPath: path,
-    q: params.get('q')?.trim() || undefined,
-    conditions: conditions.length ? conditions : undefined,
-    sizes: sizes.length ? sizes : undefined,
-    sort,
-  }),
+  convex.query(api.products.catalogue, { categoryPath: path, ...readFilters(params, { sizes: hasSizeFacet(path) }) }),
 ]);
 if (!node) return Astro.rewrite('/404');
 
@@ -84,7 +76,6 @@ const jsonLd = {
             <li>
               <a href={`/c/${c.path}`} class="tile">
                 <span class="tile__name">{c.name}</span>
-                <span class="tile__n">{c.count} {c.count === 1 ? 'article' : 'articles'}</span>
               </a>
             </li>
           ))}
@@ -162,10 +153,6 @@ const jsonLd = {
   }
   .tile:hover .tile__name {
     color: var(--red);
-  }
-  .tile__n {
-    font-size: 12.5px;
-    color: var(--ink-faint);
   }
   .soon {
     display: grid;

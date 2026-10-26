@@ -4,7 +4,8 @@ import { Link, useNavigate, useParams } from 'react-router';
 import ConfirmButton from '../ConfirmButton';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { CONDITIONS, PRODUCT_STATUS_LABEL, isSecondHand, type Condition, type ProductStatus } from '../../lib/shop';
+import { CONDITIONS, PRODUCT_STATUS_LABEL, type Condition, type ProductStatus } from '../../lib/shop';
+import { sizeScale } from '../../lib/sizes';
 import { dinarsToMillimes, errorMessage, millimesToDinars } from '../util';
 
 type Image = { url: string; storageId?: Id<'_storage'> };
@@ -88,6 +89,18 @@ export default function ProductForm() {
   const departments = (tree ?? []).filter((c) => c.level === 1);
   const rayons = (tree ?? []).filter((c) => c.parentId === dept);
   const types = (tree ?? []).filter((c) => c.parentId === rayon);
+  const scale = rayon ? sizeScale(byId.get(rayon)?.path ?? '') : null;
+
+  /** Switching rayon keeps the size only if it exists there; a one-size rayon fills it in. */
+  function pickRayon(id: string) {
+    setRayon(id);
+    const next = id ? sizeScale(byId.get(id)?.path ?? '') : null;
+    setDraft((d) => ({
+      ...d,
+      categoryId: '',
+      size: next?.values?.length === 1 ? next.values[0] : next?.values?.includes(d.size) ? d.size : '',
+    }));
+  }
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft((d) => ({ ...d, [key]: value }));
 
@@ -200,36 +213,20 @@ export default function ProductForm() {
                 <input id="name" className="input" required value={draft.name} onChange={(e) => set('name', e.target.value)} placeholder="Trench beige" />
               </div>
               <div className="field">
-                <label htmlFor="brand">Marque</label>
-                <input id="brand" className="input" required value={draft.brand} onChange={(e) => set('brand', e.target.value)} placeholder="Sandro" />
-              </div>
-            </div>
-            <div className="aform__row">
-              <div className="field">
-                <label htmlFor="size">{isSecondHand(draft.condition) ? 'Taille' : 'Format'}</label>
-                <input id="size" className="input" required value={draft.size} onChange={(e) => set('size', e.target.value)} placeholder={isSecondHand(draft.condition) ? '38, M, 42, Taille unique…' : '50 ml, Teinte 02, 100 g…'} />
-              </div>
-              <div className="field">
-                <label htmlFor="condition">État</label>
-                <select id="condition" className="input" value={draft.condition} onChange={(e) => set('condition', e.target.value as Condition)}>
-                  {CONDITIONS.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                <label htmlFor="brand">Marque <span className="muted">(facultatif)</span></label>
+                <input id="brand" className="input" value={draft.brand} onChange={(e) => set('brand', e.target.value)} placeholder="Vide si sans étiquette" />
               </div>
             </div>
             <div className="field">
               <label>Rangement</label>
               <div className="aform__row aform__row--3">
-                <select className="input" required value={dept} aria-label="Département" onChange={(e) => { setDept(e.target.value); setRayon(''); set('categoryId', ''); }}>
+                <select className="input" required value={dept} aria-label="Département" onChange={(e) => { setDept(e.target.value); pickRayon(''); }}>
                   <option value="">Département…</option>
                   {departments.map((c) => (
                     <option key={c._id} value={c._id}>{c.name}</option>
                   ))}
                 </select>
-                <select className="input" required value={rayon} aria-label="Rayon" disabled={!dept} onChange={(e) => { setRayon(e.target.value); set('categoryId', ''); }}>
+                <select className="input" required value={rayon} aria-label="Rayon" disabled={!dept} onChange={(e) => pickRayon(e.target.value)}>
                   <option value="">Rayon…</option>
                   {rayons.map((c) => (
                     <option key={c._id} value={c._id}>{c.name}</option>
@@ -243,6 +240,32 @@ export default function ProductForm() {
                 </select>
               </div>
               <p className="small muted">Un type manque ? Ajoutez-le dans <Link to="/categories">Catégories</Link>.</p>
+            </div>
+            <div className="aform__row">
+              <div className="field">
+                <label htmlFor="size">{scale?.label ?? 'Taille'}</label>
+                {scale?.values ? (
+                  <select id="size" className="input" required value={draft.size} disabled={scale.values.length === 1} onChange={(e) => set('size', e.target.value)}>
+                    <option value="">Choisir…</option>
+                    {draft.size && !scale.values.includes(draft.size) && <option value={draft.size}>{draft.size} (ancienne saisie)</option>}
+                    {scale.values.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input id="size" className="input" required disabled={!scale} value={draft.size} onChange={(e) => set('size', e.target.value)} placeholder={!scale ? "Choisissez d'abord le rayon" : scale.label === 'Format' ? '50 ml, Teinte 02, 100 g…' : '38, M, Taille unique…'} />
+                )}
+              </div>
+              <div className="field">
+                <label htmlFor="condition">État</label>
+                <select id="condition" className="input" value={draft.condition} onChange={(e) => set('condition', e.target.value as Condition)}>
+                  {CONDITIONS.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="field">
               <label htmlFor="description">Description</label>

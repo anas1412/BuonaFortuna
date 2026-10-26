@@ -2,23 +2,15 @@
 import Catalogue from '../components/Catalogue.astro';
 import Base from '../layouts/Base.astro';
 import { api, convex } from '../lib/convex';
-import { CONDITIONS, type Condition } from '../lib/shop';
+import { readFilters } from '../lib/filters';
 
 const params = Astro.url.searchParams;
-const q = params.get('q')?.trim() || undefined;
-const conditions = params.getAll('etat').filter((c): c is Condition => (CONDITIONS as readonly string[]).includes(c));
-const sizes = params.getAll('taille');
-const tri = params.get('tri');
-const sort = tri === 'prix-asc' ? 'priceAsc' : tri === 'prix-desc' ? 'priceDesc' : 'recent';
+const filters = readFilters(params, { sizes: false });
+const { q } = filters;
 
 const [tree, result] = await Promise.all([
   convex.query(api.categories.tree, {}),
-  convex.query(api.products.catalogue, {
-    q,
-    conditions: conditions.length ? conditions : undefined,
-    sizes: sizes.length ? sizes : undefined,
-    sort,
-  }),
+  convex.query(api.products.catalogue, filters),
 ]);
 
 const title = q ? `Recherche : ${q}` : 'Catalogue';

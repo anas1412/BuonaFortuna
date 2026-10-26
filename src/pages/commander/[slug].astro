@@ -24,7 +24,7 @@ const cover = product.images[0]?.url;
 
 <Base
   title={`Commander : ${product.name}`}
-  description={`Commande de ${product.name} ${product.brand}, paiement à la livraison.`}
+  description={`Commande de ${[product.name, product.brand].filter(Boolean).join(' ')}, paiement à la livraison.`}
   canonicalPath={`/commander/${product.slug}`}
   noindex
 >
@@ -140,7 +140,7 @@ const cover = product.images[0]?.url;
         <div class="order__item">
           {cover && <img src={cover} alt="" width="96" height="120" loading="eager" />}
           <div>
-            <p class="eyebrow">{product.brand} · Taille {product.size}</p>
+            <p class="eyebrow">{[product.brand, `Taille ${product.size}`].filter(Boolean).join(' · ')}</p>
             <p class="order__name">{product.name}</p>
             <p class="small muted">{product.condition}</p>
           </div>

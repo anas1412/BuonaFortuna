@@ -82,7 +82,7 @@ export default function Products() {
                 <td>
                   <span className="tbl__name">{p.name}</span>
                   <span className="tbl__sub">
-                    {p.brand} · {p.condition}
+                    {[p.brand, p.condition].filter(Boolean).join(' · ')}
                   </span>
                 </td>
                 <td className="hide-sm">{p.category?.name}</td>

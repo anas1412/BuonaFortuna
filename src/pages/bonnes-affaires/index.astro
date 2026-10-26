@@ -2,14 +2,13 @@
 import Base from '../../layouts/Base.astro';
 import { COLLECTIONS } from '../../lib/collections';
 
-const priced = COLLECTIONS.filter((c) => c.group === 'budget');
 const discounted = COLLECTIONS.filter((c) => c.group === 'remise');
 const fresh = COLLECTIONS.filter((c) => c.group === 'nouveau');
 ---
 
 <Base
   title="Bonnes affaires"
-  description="Nouveautés, promotions, pièces à moins de 30, 50 ou 100 DT, remises de 20 à 50 % et plus : les bonnes affaires BuonaFortuna, mises à jour automatiquement avec le stock."
+  description="Nouveautés, promotions, remises de 20 à 50 % et plus : les bonnes affaires BuonaFortuna, mises à jour automatiquement avec le stock."
   canonicalPath="/bonnes-affaires"
 >
   <section class="container page">
@@ -19,10 +18,6 @@ const fresh = COLLECTIONS.filter((c) => c.group === 'nouveau');
     </header>
 
     <div class="groups">
-      <section>
-        <h2>Par budget</h2>
-        <ul class="deals">{priced.map((c) => <li><a href={`/bonnes-affaires/${c.slug}`} class="deal"><span class="deal__t">{c.title}</span><span class="deal__i">{c.intro}</span></a></li>)}</ul>
-      </section>
       <section>
         <h2>Par remise</h2>
         <ul class="deals">{discounted.map((c) => <li><a href={`/bonnes-affaires/${c.slug}`} class="deal"><span class="deal__t">{c.title}</span><span class="deal__i">{c.intro}</span></a></li>)}</ul>

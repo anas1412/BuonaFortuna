@@ -33,7 +33,7 @@ const discount = discountPercent(p.price, p.compareAtPrice);
     <div class="pc__media">
       <img
         src={cover}
-        alt={`${p.name}, ${p.brand}, ${p.size}`}
+        alt={[p.name, p.brand, p.size].filter(Boolean).join(', ')}
         width="400"
         height="500"
         loading={eager ? 'eager' : 'lazy'}
@@ -45,7 +45,7 @@ const discount = discountPercent(p.price, p.compareAtPrice);
       <span class="chip chip--paper pc__condition">{p.condition}</span>
     </div>
     <div class="pc__body">
-      <p class="pc__meta">{p.brand} · {p.size}</p>
+      <p class="pc__meta">{[p.brand, p.size].filter(Boolean).join(' · ')}</p>
       <h3 class="pc__name">{p.name}</h3>
       <p class="pc__price">
         <span class="price">{formatPrice(p.price)}</span>

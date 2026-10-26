@@ -158,6 +158,26 @@ Decisions taken (user said "implement what you told me"):
 - Admin gets a category manager (`/admin/categories`: add leaf under a parent, rename, delete if empty) and a 3-step picker in the product form. Rename keeps slug/path (URLs stay stable).
 - Header links = departments + Bonnes affaires; department/rayon pages show child tiles; rail shows the subtree for the current node.
 
+## v2.1 — price is a filter, not a collection
+
+User decision (2026-10-26): the « Moins de 30/50/100 DT » collections covered the whole shop, so « robes under 30 DT » was impossible. Price moves into the catalogue rail.
+
+- [x] Rail gets a **Budget** group (Moins de 30 / 50 / 100 DT), `?budget=30`, on catalogue, category and collection pages
+- [x] Drop the three budget collections; home tile shows Nouveautés · Promotions · -30 % · -50 %
+- [x] Old `/bonnes-affaires/moins-de-*-dt` URLs → 301 to `/catalogue?budget=*`
+- [x] Build + check pass; verified in the browser on dev
+- [x] Home: department cards are bare links (no heading, counts or sub-links); category tiles and rail show no counts
+- [x] Desktop rail was never visible (closed `<details>`); `::details-content` shows it at ≥900px, phones still fold it
+- [x] Filters unified in `src/lib/filters.ts` (URL vocabulary, budgets, sorts, size facet rules); pages and rail read from it. `bun run check` runs `filters.check.ts`
+- [x] Sort moved out of the rail to a bar above the grid (Nouveautés · Moins cher · Plus cher); « Effacer les filtres » keeps the sort
+- [x] Size facet only inside a rayon (one kind of size there), labelled Pointure / Format / Taille; hidden when a single value
+- [x] **Sizes are a fixed table** (`src/lib/sizes.ts`), French sizing per rayon: femme 34–48 + XS–XXL, homme XS–3XL + 38–54, enfants Naissance → 16 ans, pointures femme 35–42 / homme 39–47 / enfants 16–38, sacs·bijoux·accessoires « Taille unique », beauté free text (Format). Drives the admin dropdown, rail order and labels. Rayons added later in the admin fall back to free text until added to the table
+- [ ] Admin form not yet checked in the browser (needs a login): rayon first, then the size dropdown; an old off-table size shows as « (ancienne saisie) »
+- [x] Brand optional (« Marque (facultatif) »): stored as empty string, no schema change; card, product page, JSON-LD, order page and admin list skip it when empty. Empty case not yet seen in the browser (needs an admin-created product)
+- [x] `seed:fixPlaceholders` (dry run by default, `'{"apply": true}'` to write): off-table sizes → table (31/32 → 40, slug regenerated), « Vintage » brand → empty. Applied on **dev** and verified; seed data corrected too
+- [x] Same on **prod** (2026-10-26): `bunx convex deploy`, dry run, apply — same 2 changes, rerun clean. Live site needs the new code pushed (old code shows « · 36 » on the brandless card)
+- [ ] Ask the client: does she convert UK/US/IT labels to French sizes when listing? (the table assumes yes)
+
 ## Out of scope
 
 Cart · online payment · buyer accounts · **multivendor** · Arabic · reviews · custom domain · automatic best-sellers ranking

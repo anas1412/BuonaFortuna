@@ -7,29 +7,21 @@ import Catalogue from '../../components/Catalogue.astro';
 import Base from '../../layouts/Base.astro';
 import { COLLECTIONS, collectionBySlug } from '../../lib/collections';
 import { api, convex } from '../../lib/convex';
-import { CONDITIONS, SITE_URL, type Condition } from '../../lib/shop';
+import { readFilters } from '../../lib/filters';
+import { SITE_URL } from '../../lib/shop';
 
 const { slug } = Astro.params;
+// The old « Moins de N DT » pages are now the rail's Budget filter.
+const oldBudget = slug?.match(/^moins-de-(30|50|100)-dt$/);
+if (oldBudget) return Astro.redirect(`/catalogue?budget=${oldBudget[1]}`, 301);
 const collection = slug ? collectionBySlug(slug) : null;
 if (!collection) return Astro.rewrite('/404');
 
 const params = Astro.url.searchParams;
-const conditions = params.getAll('etat').filter((c): c is Condition => (CONDITIONS as readonly string[]).includes(c));
-const sizes = params.getAll('taille');
-const tri = params.get('tri');
-const sort = tri === 'prix-asc' ? 'priceAsc' : tri === 'prix-desc' ? 'priceDesc' : collection.filter.sort ?? 'recent';
 
 const [tree, result] = await Promise.all([
   convex.query(api.categories.tree, {}),
-  convex.query(api.products.catalogue, {
-    q: params.get('q')?.trim() || undefined,
-    conditions: conditions.length ? conditions : undefined,
-    sizes: sizes.length ? sizes : undefined,
-    sort,
-    maxPrice: collection.filter.maxPrice,
-    minDiscount: collection.filter.minDiscount,
-    onSale: collection.filter.onSale,
-  }),
+  convex.query(api.products.catalogue, { ...readFilters(params, { sizes: false }), ...collection.filter }),
 ]);
 
 const isFiltered = [...params.keys()].length > 0;

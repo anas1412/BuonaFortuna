@@ -5,7 +5,6 @@
  */
 import ProductCard from '../components/ProductCard.astro';
 import Base from '../layouts/Base.astro';
-import { COLLECTIONS } from '../lib/collections';
 import { api, convex } from '../lib/convex';
 import { DELIVERY_FEE, SITE_URL, formatPrice } from '../lib/shop';
 
@@ -14,13 +13,11 @@ const [tree, latest] = await Promise.all([
   convex.query(api.products.latest, { limit: 8 }),
 ]);
 
-// Departments with stock, and inside each the rayons that have some.
+// Departments with stock.
 const departments = tree
-  .filter((c) => c.level === 1 && c.count > 0)
-  .map((d) => ({ ...d, rayons: tree.filter((c) => c.parentId === d._id && c.count > 0) }));
+  .filter((c) => c.level === 1 && c.count > 0);
 
 const heroShots = latest.slice(0, 4).map((p) => ({ src: p.images[0]?.url, alt: p.name, href: `/p/${p.slug}` }));
-const deals = COLLECTIONS.filter((c) => c.indexable).slice(0, 4);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -68,37 +65,17 @@ const jsonLd = {
   </section>
 
   <section class="container section">
-    <div class="section__head">
-      <h2>Par rayon</h2>
-    </div>
+    <h2 class="visually-hidden">Par rayon</h2>
     <ul class="depts">
       {
         departments.map((d) => (
-          <li class="dept">
-            <a href={`/c/${d.path}`} class="dept__head">
-              <span class="dept__name">{d.name}</span>
-              <span class="dept__n">{d.count} {d.count === 1 ? 'article' : 'articles'}</span>
-            </a>
-            {d.rayons.length > 0 && (
-              <ul class="dept__rayons">
-                {d.rayons.map((r) => (
-                  <li>
-                    <a href={`/c/${r.path}`}>{r.name}</a>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <li>
+            <a href={`/c/${d.path}`} class="dept">{d.name}</a>
           </li>
         ))
       }
-      <li class="dept dept--deals">
-        <a href="/bonnes-affaires" class="dept__head">
-          <span class="dept__name">Bonnes affaires</span>
-          <span class="dept__n">Budget, remises, nouveautés</span>
-        </a>
-        <ul class="dept__rayons">
-          {deals.map((c) => <li><a href={`/bonnes-affaires/${c.slug}`}>{c.title}</a></li>)}
-        </ul>
+      <li>
+        <a href="/bonnes-affaires" class="dept dept--deals">Bonnes affaires</a>
       </li>
     </ul>
   </section>
@@ -218,7 +195,7 @@ const jsonLd = {
     color: var(--red);
   }
 
-  /* Departments: a heading plus its stocked rayons, so the tree is visible from the home page. */
+  /* Departments: one card each, the whole card is the link. */
   .depts {
     list-style: none;
     margin: 0;
@@ -228,45 +205,18 @@ const jsonLd = {
     gap: 12px;
   }
   .dept {
+    display: block;
     background: var(--paper);
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
-    padding: 16px 18px 14px;
-    display: grid;
-    gap: 10px;
-    align-content: start;
-  }
-  .dept__head {
-    display: grid;
-    gap: 2px;
-  }
-  .dept__name {
+    padding: 16px 18px;
     font-family: var(--font-display);
     font-size: 20px;
     font-weight: 600;
+    transition: border-color 0.15s ease;
   }
-  .dept__head:hover .dept__name {
-    color: var(--red);
-  }
-  .dept__n {
-    font-size: 12.5px;
-    color: var(--ink-faint);
-  }
-  .dept__rayons {
-    list-style: none;
-    margin: 0;
-    padding: 10px 0 0;
-    border-top: 1px solid var(--line);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 14px;
-  }
-  .dept__rayons a {
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--ink-soft);
-  }
-  .dept__rayons a:hover {
+  .dept:hover {
+    border-color: var(--red);
     color: var(--red);
   }
   .dept--deals {

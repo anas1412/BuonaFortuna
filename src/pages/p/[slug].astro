@@ -8,6 +8,7 @@ import ProductCard from '../../components/ProductCard.astro';
 import Base from '../../layouts/Base.astro';
 import { api, convex } from '../../lib/convex';
 import { DELIVERY_FEE, SITE_URL, discountPercent, formatPrice, isSecondHand } from '../../lib/shop';
+import { sizeScale } from '../../lib/sizes';
 
 const { slug } = Astro.params;
 const product = slug ? await convex.query(api.products.bySlug, { slug }) : null;
@@ -20,11 +21,11 @@ const discount = discountPercent(product.price, product.compareAtPrice);
 const url = `${SITE_URL}/p/${product.slug}`;
 const dinars = (product.price / 1000).toFixed(3);
 
-// Many names already carry the brand ("Trench beige Sandro"); don't say it twice.
-const hasBrand = product.name.toLowerCase().includes(product.brand.toLowerCase());
+// Many names already carry the brand ("Trench beige Sandro"); don't say it twice. No label → no brand.
+const hasBrand = !product.brand || product.name.toLowerCase().includes(product.brand.toLowerCase());
 const fullName = hasBrand ? product.name : `${product.name} ${product.brand}`;
 const secondHand = isSecondHand(product.condition);
-const sizeLabel = secondHand ? 'Taille' : 'Format';
+const sizeLabel = product.category ? sizeScale(product.category.path).label : secondHand ? 'Taille' : 'Format';
 const description = secondHand
   ? `${fullName}, taille ${product.size}, ${product.condition.toLowerCase()} — ${formatPrice(product.price)}. Pièce unique de seconde main, paiement à la livraison en Tunisie.`
   : `${fullName}, ${product.size}, neuf — ${formatPrice(product.price)}. Livraison partout en Tunisie, paiement à la réception.`;
@@ -46,7 +47,7 @@ const jsonLd = [
     image: images,
     description: product.description,
     sku: product.slug,
-    brand: { '@type': 'Brand', name: product.brand },
+    brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
     itemCondition: schemaCondition,
     category: chain.map((c) => c.name).join(' > ') || undefined,
     url,
@@ -97,11 +98,11 @@ const jsonLd = [
 
     <div class="product__grid">
       <div class="product__media">
-        <Gallery client:visible images={images} alt={`${product.name}, ${product.brand}, taille ${product.size}`} />
+        <Gallery client:visible images={images} alt={[product.name, product.brand, `taille ${product.size}`].filter(Boolean).join(', ')} />
       </div>
 
       <div class="product__info">
-        <p class="eyebrow">{product.brand}</p>
+        {product.brand && <p class="eyebrow">{product.brand}</p>}
         <h1>{product.name}</h1>
 
         <p class="product__priceRow">

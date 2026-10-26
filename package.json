@@ -7,7 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check && tsc --noEmit -p convex",
+    "check": "astro check && tsc --noEmit -p convex && bun src/lib/check.ts",
     "convex": "convex dev"
   },
   "dependencies": {

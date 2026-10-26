@@ -109,9 +109,9 @@ export const seedProducts = [
   },
   {
     "name": "Jean 501 délavé Levi's",
-    "slug": "jean-501-delave-levi-s-31-32",
+    "slug": "jean-501-delave-levi-s-40",
     "brand": "Levi's",
-    "size": "31/32",
+    "size": "40",
     "condition": "Très bon état",
     "categoryKey": "cat-2",
     "price": 32000,
@@ -187,7 +187,7 @@ export const seedProducts = [
   {
     "name": "Robe cocktail années 60",
     "slug": "robe-cocktail-annees-60-36",
-    "brand": "Vintage",
+    "brand": "",
     "size": "36",
     "condition": "Très bon état",
     "categoryKey": "cat-6",

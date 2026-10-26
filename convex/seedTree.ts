@@ -122,7 +122,7 @@ export const seedProductPaths: Record<string, string> = {
   'trench-beige-sandro-38': 'femme/vetements/manteaux-et-trenchs',
   'robe-fleurie-zara-m': 'femme/vetements/robes',
   'chemisier-en-soie-36': 'femme/vetements/chemises',
-  'jean-501-delave-levi-s-31-32': 'homme/vetements/jeans',
+  'jean-501-delave-levi-s-40': 'homme/vetements/jeans',
   'chemise-a-carreaux-flanelle-l': 'homme/vetements/chemises',
   'baskets-new-balance-574-42': 'homme/chaussures/baskets',
   'bottines-en-cuir-39': 'femme/chaussures/bottines',
