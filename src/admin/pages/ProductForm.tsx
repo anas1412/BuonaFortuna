@@ -6,6 +6,7 @@ import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { CONDITIONS, PRODUCT_STATUS_LABEL, type Condition, type ProductStatus } from '../../lib/shop';
 import { sizeScale } from '../../lib/sizes';
+import { Empty, Icon, Loading, PageHead } from '../ui';
 import { dinarsToMillimes, errorMessage, millimesToDinars, useIsAdmin } from '../util';
 
 type Image = { url: string; storageId?: Id<'_storage'> };
@@ -182,22 +183,22 @@ export default function ProductForm() {
     }
   }
 
-  if (isEdit && existing === undefined) return <div className="loading">Chargement…</div>;
-  if (isEdit && existing === null) return <div className="empty">Article introuvable.</div>;
+  if (isEdit && existing === undefined) return <Loading rows={3} />;
+  if (isEdit && existing === null) return <Empty title="Article introuvable">Il a peut-être été supprimé.</Empty>;
 
   return (
     <>
-      <p className="adm__crumb">
-        <Link to="/produits">Articles</Link> / {isEdit ? existing?.name : 'Nouvel article'}
-      </p>
-      <div className="adm__head">
-        <h1>{isEdit ? "Modifier l'article" : 'Nouvel article'}</h1>
+      <PageHead
+        title={isEdit ? existing?.name : 'Nouvel article'}
+        back={{ to: '/produits', label: 'Articles' }}
+        sub={isEdit ? undefined : 'Photos, description et prix : la pièce est en ligne dès que vous publiez.'}
+      >
         {isEdit && existing && (
-          <a href={`/p/${existing.slug}`} target="_blank" rel="noopener" className="btn btn--ghost btn--sm">
-            Voir la fiche ↗
+          <a href={`/p/${existing.slug}`} target="_blank" rel="noopener" className="btn btn--outline btn--sm">
+            <Icon name="external" /> Voir sur la boutique
           </a>
         )}
-      </div>
+      </PageHead>
 
       <form className="aform" onSubmit={onSubmit}>
         <div className="aform__col">
@@ -208,6 +209,7 @@ export default function ProductForm() {
           )}
 
           <section className="aform__card">
+            <h3>La pièce</h3>
             <div className="aform__row">
               <div className="field">
                 <label htmlFor="name">Nom de l'article</label>
@@ -275,6 +277,7 @@ export default function ProductForm() {
           </section>
 
           <section className="aform__card">
+            <h3>Prix</h3>
             <div className="aform__row">
               <div className="field">
                 <label htmlFor="price">Prix (DT)</label>
@@ -305,18 +308,18 @@ export default function ProductForm() {
             <Link to="/produits" className="btn btn--ghost">
               Annuler
             </Link>
-            {isEdit && isAdmin && (
-              <span style={{ marginLeft: 'auto' }}>
-                <ConfirmButton
-                  label="Supprimer l'article"
-                  confirmLabel="Oui, supprimer"
-                  hint="Définitif, photos comprises."
-                  disabled={busy}
-                  onConfirm={onDelete}
-                />
-              </span>
-            )}
           </div>
+          {isEdit && isAdmin && (
+            <div className="aform__danger">
+              <ConfirmButton
+                label="Supprimer l'article"
+                confirmLabel="Oui, supprimer"
+                hint="Définitif, photos comprises."
+                disabled={busy}
+                onConfirm={onDelete}
+              />
+            </div>
+          )}
         </div>
 
         <aside className="aform__card">
@@ -329,11 +332,11 @@ export default function ProductForm() {
                 {i === 0 && <span className="chip chip--ink photo__cover">Couverture</span>}
                 <div className="photo__tools">
                   {i > 0 && (
-                    <button type="button" title="Mettre en couverture" onClick={() => moveToFront(i)}>
+                    <button type="button" title="Mettre en couverture" aria-label="Mettre en couverture" onClick={() => moveToFront(i)}>
                       ★
                     </button>
                   )}
-                  <button type="button" title="Retirer" onClick={() => removeImage(i)}>
+                  <button type="button" title="Retirer la photo" aria-label="Retirer la photo" onClick={() => removeImage(i)}>
                     ×
                   </button>
                 </div>
@@ -341,7 +344,8 @@ export default function ProductForm() {
             ))}
             <label className={`photo photo--add${uploading ? ' photo--busy' : ''}`}>
               <input type="file" accept="image/*" multiple onChange={(e) => void onFiles(e.target.files)} disabled={uploading > 0} />
-              {uploading ? `Envoi (${uploading})…` : '+ Ajouter des photos'}
+              <Icon name="plus" />
+              {uploading ? `Envoi (${uploading})…` : 'Ajouter des photos'}
             </label>
           </div>
         </aside>

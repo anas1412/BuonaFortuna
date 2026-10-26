@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import Modal from '../Modal';
+import { Loading, PageHead } from '../ui';
 import { errorMessage } from '../util';
 
 type Node = {
@@ -31,7 +32,7 @@ export default function Categories() {
   const [toDelete, setToDelete] = useState<Node | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  if (!tree) return <div className="loading">Chargement…</div>;
+  if (!tree) return <Loading />;
 
   const childrenOf = (id: Id<'categories'> | undefined) =>
     tree.filter((c) => c.parentId === id).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
@@ -66,15 +67,10 @@ export default function Categories() {
 
   return (
     <>
-      <div className="adm__head">
-        <h1>Catégories</h1>
-        <span className="muted small">
-          {tree.length} catégories · {stocked} avec du stock
-        </span>
-      </div>
+      <PageHead title="Catégories" sub={`Les rayons de la boutique. Une catégorie sans article reste cachée aux clients. ${stocked} sur ${tree.length} ont du stock.`} />
 
       {error && (
-        <p className="aform__error" role="alert" style={{ marginBottom: 16 }}>
+        <p className="aform__error" role="alert">
           {error}
         </p>
       )}

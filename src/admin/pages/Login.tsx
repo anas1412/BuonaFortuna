@@ -42,7 +42,7 @@ export default function Login() {
     <div className="login">
       <form className="login__card" onSubmit={onSubmit}>
         <div>
-          <span className="logo" style={{ fontSize: 22 }}>
+          <span className="logo login__logo">
             <span className="logo__a">Buona</span>
             <span className="logo__b">Fortuna</span>
           </span>

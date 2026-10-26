@@ -199,8 +199,36 @@ User decision (2026-10-26): staff are invited from the admin, with two roles. No
 - [x] Admin: Équipe page, menu and Supprimer buttons by role, admin-only routes, « Accès retiré » screen
 - [x] anasbassoumi@gmail.com is an owner on dev and prod (already in ADMIN_EMAIL on both; prod also has helaismail0@gmail.com)
 - [x] Checked on dev in the browser: Équipe add / duplicate refused / role change / remove; anonymous call rejected; product form sizes per rayon and empty-brand save
-- [ ] Deploy: `bunx convex deploy` **before** pushing (the admin calls `team.me`)
+- [x] Deployed 2026-10-26: Convex prod (team table + index), then pushed 73478fb; live admin bundle has the Équipe route, no console errors
 - [ ] Not tested: a real Gestionnaire session (needs a second account)
+
+## v2.3 — admin redesign
+
+Users have never used a back office, and will mostly work from a phone (photo → listing). Goal: obvious, calm, consistent; one way to do each thing.
+
+**Audit (2026-10-26, 375px and 1280px)**
+- Phone: the top bar takes a third of the screen (menu wraps to 2 rows, then email, role, boutique link, logout stacked).
+- Phone: tables squeeze — names wrap over 3 lines, columns collide. Same order table is copied in Dashboard and Orders.
+- Phone: status tabs wrap into a broken two-row pill.
+- Phone: product form keeps two fields per row (Nom / Marque cut off); Enregistrer sits at the very bottom.
+- Phone: order detail puts the actions (confirm, cancel) last; calling the customer is a small text link.
+- Everywhere: 12–14px text, 36px buttons, 14 inline styles, three different "small button" looks, empty/loading states are bare text.
+
+**Rules**
+- Phone-first, one breakpoint (900px). Touch targets ≥ 44px on phones.
+- Shell: desktop keeps the sidebar; phone gets a slim top bar (logo + account menu) and a fixed bottom tab bar with icons (Accueil, Commandes, Articles, + Catégories/Équipe for admins).
+- One page header: title, optional subtitle, one primary action. Back link on detail pages.
+- Lists: tables on desktop, the same rows become cards on phones (CSS only). One shared order list.
+- Forms: one column on phones, actions in a sticky bar at the bottom.
+- Buttons: primary (red, one per screen), secondary (outline), danger (outline red, always two-step). Base text 15px, numbers tabular.
+- States: loading skeleton, empty state that says what will appear and what to do.
+- No inline styles; icons are one inline SVG set with one stroke width.
+
+- [x] Foundation: `src/admin/ui.tsx` (PageHead, Tabs, Empty, Loading, Icon), one stylesheet system in admin.css
+- [x] Shell: phone top bar + bottom tab bar with icons; sidebar with icons; account menu (closes on tap outside / navigation)
+- [x] Lists: shared `OrderList`; rows are real links; tables → cards on phones (CSS); status tabs scroll sideways
+- [x] Forms and detail: photos first and sticky save bar on phones; order detail with Appeler/WhatsApp buttons and « Que faire ? » first; categories no longer overflow; 24 h times; zero inline styles
+- [x] Verified on 375 (no horizontal overflow on any route) and 1280; login not re-checked (would sign out)
 
 ## Out of scope
 

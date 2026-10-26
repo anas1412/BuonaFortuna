@@ -1,81 +1,39 @@
 import { useQuery } from 'convex/react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 import { api } from '../../../convex/_generated/api';
-import { ORDER_STATUS_LABEL, formatPrice, type OrderStatus } from '../../lib/shop';
-import { fmtDate } from '../util';
+import type { OrderStatus } from '../../lib/shop';
+import OrderList from '../OrderList';
+import { Empty, Loading, PageHead, Tabs } from '../ui';
 
-const TABS: { key: OrderStatus | 'all'; label: string }[] = [
-  { key: 'new', label: 'Nouvelles' },
+type Tab = OrderStatus | 'all';
+
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'new', label: 'À appeler' },
   { key: 'confirmed', label: 'Confirmées' },
   { key: 'delivered', label: 'Livrées' },
   { key: 'cancelled', label: 'Annulées' },
   { key: 'all', label: 'Toutes' },
 ];
 
+const EMPTY: Record<Tab, string> = {
+  new: 'Aucune commande à appeler. Les nouvelles arrivent ici en direct.',
+  confirmed: 'Aucune commande confirmée en attente de livraison.',
+  delivered: 'Aucune commande livrée pour le moment.',
+  cancelled: 'Aucune commande annulée.',
+  all: 'Aucune commande pour le moment.',
+};
+
 export default function Orders() {
-  const [tab, setTab] = useState<OrderStatus | 'all'>('new');
+  const [tab, setTab] = useState<Tab>('new');
   const orders = useQuery(api.orders.list, tab === 'all' ? {} : { status: tab });
-  const navigate = useNavigate();
+  const stats = useQuery(api.orders.stats);
 
   return (
     <>
-      <div className="adm__head">
-        <h1>Commandes</h1>
-      </div>
+      <PageHead title="Commandes" sub="Appelez le client pour confirmer, puis marquez la commande livrée une fois payée." />
+      <Tabs tabs={TABS.map((t) => (t.key === 'new' ? { ...t, count: stats?.newOrders } : t))} value={tab} onChange={setTab} />
 
-      <div className="tabs" role="tablist">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.key}
-            className={tab === t.key ? 'active' : ''}
-            onClick={() => setTab(t.key)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {!orders ? (
-        <div className="loading">Chargement…</div>
-      ) : orders.length === 0 ? (
-        <div className="empty">Rien dans cette liste.</div>
-      ) : (
-        <table className="tbl">
-          <thead>
-            <tr>
-              <th>N°</th>
-              <th>Client</th>
-              <th className="hide-sm">Téléphone</th>
-              <th className="hide-sm">Article</th>
-              <th className="num">Total</th>
-              <th>Statut</th>
-              <th className="hide-sm">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((o) => (
-              <tr key={o._id} className="is-link" onClick={() => navigate(`/commandes/${o._id}`)}>
-                <td className="tbl__name">{o.number}</td>
-                <td>
-                  {o.customer.name}
-                  <span className="tbl__sub">{o.customer.city}</span>
-                </td>
-                <td className="hide-sm">{o.customer.phone}</td>
-                <td className="hide-sm">{o.items[0]?.name}</td>
-                <td className="num">{formatPrice(o.items.reduce((s, i) => s + i.price, 0) + o.deliveryFee)}</td>
-                <td>
-                  <span className={`st st--${o.status}`}>{ORDER_STATUS_LABEL[o.status]}</span>
-                </td>
-                <td className="hide-sm">{fmtDate(o.createdAt)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      {!orders ? <Loading /> : orders.length === 0 ? <Empty title="Rien ici">{EMPTY[tab]}</Empty> : <OrderList orders={orders} phone />}
     </>
   );
 }

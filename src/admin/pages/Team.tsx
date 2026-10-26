@@ -2,6 +2,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { useState } from 'react';
 import { api } from '../../../convex/_generated/api';
 import ConfirmButton from '../ConfirmButton';
+import { Loading, PageHead } from '../ui';
 import { ROLE_LABEL, errorMessage, useMe } from '../util';
 
 type Role = keyof typeof ROLE_LABEL;
@@ -41,16 +42,11 @@ export default function Team() {
     setBusy(false);
   };
 
-  if (!team) return <div className="loading">Chargement…</div>;
+  if (!team) return <Loading rows={2} />;
 
   return (
     <>
-      <div className="adm__head">
-        <h1>Équipe</h1>
-        <span className="muted small">
-          {team.length} {team.length === 1 ? 'personne' : 'personnes'}
-        </span>
-      </div>
+      <PageHead title="Équipe" sub="Les personnes qui peuvent ouvrir cette administration, et ce qu'elles ont le droit de faire." />
 
       {error && (
         <p className="aform__error" role="alert">
@@ -90,7 +86,9 @@ export default function Team() {
           <tr>
             <th>Personne</th>
             <th>Rôle</th>
-            <th></th>
+            <th className="tbl__end">
+              <span className="visually-hidden">Actions</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -108,14 +106,14 @@ export default function Team() {
                   {m.id === null || self ? (
                     ROLE_LABEL[m.role]
                   ) : (
-                    <select className="input" style={{ minHeight: 36 }} value={m.role} aria-label={`Rôle de ${m.email}`} onChange={(e) => void run(() => setRole({ id: m.id!, role: e.target.value as Role }))}>
+                    <select className="input" value={m.role} aria-label={`Rôle de ${m.email}`} onChange={(e) => void run(() => setRole({ id: m.id!, role: e.target.value as Role }))}>
                       {ROLES.map((r) => (
                         <option key={r} value={r}>{ROLE_LABEL[r]}</option>
                       ))}
                     </select>
                   )}
                 </td>
-                <td className="num">
+                <td className="tbl__end">
                   {m.id !== null && !self && (
                     <ConfirmButton label="Retirer" confirmLabel="Oui, retirer" hint="L'accès s'arrête immédiatement." onConfirm={() => void run(() => remove({ id: m.id! }))} />
                   )}

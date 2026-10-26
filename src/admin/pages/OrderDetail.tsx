@@ -5,6 +5,7 @@ import ConfirmButton from '../ConfirmButton';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { ORDER_STATUS_LABEL, formatPrice, whatsappLink, type OrderStatus } from '../../lib/shop';
+import { Empty, Icon, Loading, PageHead } from '../ui';
 import { errorMessage, fmtDate } from '../util';
 
 export default function OrderDetail() {
@@ -14,8 +15,8 @@ export default function OrderDetail() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (order === undefined) return <div className="loading">Chargement…</div>;
-  if (order === null) return <div className="empty">Commande introuvable.</div>;
+  if (order === undefined) return <Loading rows={3} />;
+  if (order === null) return <Empty title="Commande introuvable" />;
 
   const item = order.items[0];
   const total = order.items.reduce((s, i) => s + i.price, 0) + order.deliveryFee;
@@ -38,21 +39,19 @@ export default function OrderDetail() {
 
   return (
     <>
-      <p className="adm__crumb">
-        <Link to="/commandes">Commandes</Link> / {order.number}
-      </p>
-      <div className="adm__head">
-        <h1>
-          Commande {order.number}{' '}
-          <span className={`st st--${order.status}`} style={{ verticalAlign: 'middle', marginLeft: 8 }}>
-            {ORDER_STATUS_LABEL[order.status]}
-          </span>
-        </h1>
-        <span className="muted small">{fmtDate(order.createdAt)}</span>
-      </div>
+      <PageHead
+        back={{ to: '/commandes', label: 'Commandes' }}
+        title={
+          <>
+            {order.number}
+            <span className={`st st--${order.status}`}>{ORDER_STATUS_LABEL[order.status]}</span>
+          </>
+        }
+        sub={`Passée le ${fmtDate(order.createdAt)}`}
+      />
 
       {error && (
-        <p className="aform__error" role="alert" style={{ marginBottom: 16 }}>
+        <p className="aform__error" role="alert">
           {error}
         </p>
       )}
@@ -61,6 +60,16 @@ export default function OrderDetail() {
         <div className="aform__col">
           <section className="aform__card">
             <h3>Client</h3>
+            <div className="contact">
+              <a href={`tel:+216${order.customer.phone}`} className="btn btn--outline btn--sm">
+                <Icon name="phone" /> Appeler
+              </a>
+              {wa && (
+                <a href={wa} target="_blank" rel="noopener" className="btn btn--outline btn--sm">
+                  <Icon name="chat" /> WhatsApp
+                </a>
+              )}
+            </div>
             <dl className="kv">
               <div>
                 <dt>Nom</dt>
@@ -68,17 +77,7 @@ export default function OrderDetail() {
               </div>
               <div>
                 <dt>Téléphone</dt>
-                <dd>
-                  <a href={`tel:+216${order.customer.phone}`}>{order.customer.phone}</a>
-                  {wa && (
-                    <>
-                      {' · '}
-                      <a href={wa} target="_blank" rel="noopener">
-                        WhatsApp
-                      </a>
-                    </>
-                  )}
-                </dd>
+                <dd>{order.customer.phone}</dd>
               </div>
               <div>
                 <dt>Gouvernorat</dt>
@@ -100,40 +99,46 @@ export default function OrderDetail() {
           <section className="aform__card">
             <h3>Article</h3>
             {item && (
-              <div className="tbl__row" style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-                {item.image && <img src={item.image} alt="" className="tbl__thumb" style={{ width: 64, height: 80 }} />}
+              <div className="item">
+                {item.image && <img src={item.image} alt="" className="tbl__thumb" />}
                 <div>
-                  <p className="tbl__name">
-                    <Link to={`/produits/${item.productId}`}>{item.name}</Link>
-                  </p>
+                  <Link to={`/produits/${item.productId}`} className="tbl__name">
+                    {item.name}
+                  </Link>
                   <span className="tbl__sub">{formatPrice(item.price)}</span>
                 </div>
               </div>
             )}
-            <dl className="kv" style={{ borderTop: '1px solid var(--line)', paddingTop: 12 }}>
+            <dl className="kv kv--total">
               <div>
                 <dt>Livraison</dt>
                 <dd>{formatPrice(order.deliveryFee)}</dd>
               </div>
               <div>
                 <dt>À encaisser</dt>
-                <dd style={{ fontWeight: 700, color: 'var(--red)' }}>{formatPrice(total)}</dd>
+                <dd className="kv__strong">{formatPrice(total)}</dd>
               </div>
             </dl>
           </section>
         </div>
 
         <aside className="aform__card statusbar">
-          <h3>Suivi</h3>
+          <h3>Que faire ?</h3>
           {order.status === 'new' && (
-            <button type="button" className="btn btn--primary" disabled={busy} onClick={() => move('confirmed')}>
-              Client appelé — confirmer
-            </button>
+            <>
+              <p className="small muted">Appelez le client pour vérifier l'adresse, puis confirmez.</p>
+              <button type="button" className="btn btn--primary" disabled={busy} onClick={() => move('confirmed')}>
+                Client appelé : confirmer
+              </button>
+            </>
           )}
           {order.status === 'confirmed' && (
-            <button type="button" className="btn btn--primary" disabled={busy} onClick={() => move('delivered')}>
-              Livrée et payée
-            </button>
+            <>
+              <p className="small muted">Une fois le colis livré et l'argent reçu :</p>
+              <button type="button" className="btn btn--primary" disabled={busy} onClick={() => move('delivered')}>
+                Livrée et payée
+              </button>
+            </>
           )}
           {(order.status === 'new' || order.status === 'confirmed') && (
             <ConfirmButton
@@ -145,11 +150,11 @@ export default function OrderDetail() {
               onConfirm={() => move('cancelled')}
             />
           )}
-          {order.status === 'delivered' && <p className="muted small">Terminée. L'article est marqué vendu.</p>}
+          {order.status === 'delivered' && <p className="small muted">Terminée. L'article est marqué vendu.</p>}
           {order.status === 'cancelled' && (
             <>
-              <p className="muted small">Annulée. L'article est de nouveau en vente.</p>
-              <button type="button" className="btn btn--outline btn--sm" disabled={busy} onClick={() => move('new')}>
+              <p className="small muted">Annulée. L'article est de nouveau en vente.</p>
+              <button type="button" className="btn btn--outline" disabled={busy} onClick={() => move('new')}>
                 Rouvrir la commande
               </button>
             </>
